@@ -1,0 +1,20 @@
+{
+	"name": "orchestra-theme",
+	"version": "1.0.0",
+	"description": "A theme for Orchestra, and some of Joe's other apps.",
+	"author": "Joseph Huckaby <jhuckaby@gmail.com>",
+	"homepage": "https://github.com/jhuckaby/orchestra-theme",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/jhuckaby/orchestra-theme"
+	},
+	"bugs": {
+		"url": "https://github.com/jhuckaby/orchestra-theme/issues"
+	},
+	"keywords": [
+		"theme",
+		"javascript",
+		"webapp"
+	]
+}

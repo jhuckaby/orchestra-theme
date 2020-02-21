@@ -1,0 +1,1213 @@
+/**
+ * WebApp 1.0 Page Manager
+ * Author: Joseph Huckaby
+ **/
+
+//
+// Page Base Class
+//
+
+window.Page = class Page {
+	// 'Page' class is the abstract base class for all pages
+	// Each web component calls this class daddy
+	
+	// methods
+	constructor(config, div) {
+		if (!config) return;
+		
+		this.ID = '';
+		this.data = null;
+		this.active = false;
+		
+		// class constructor, import config into self
+		this.data = {};
+		if (!config) config = {};
+		for (var key in config) this[key] = config[key];
+		
+		this.div = div || $('#page_' + this.ID);
+		assert(this.div, "Cannot find page div: page_" + this.ID);
+		
+		this.tab = $('#tab_' + this.ID);
+	}
+	
+	onInit() {
+		// called with the page is initialized
+	}
+	
+	onActivate() {
+		// called when page is activated
+		return true;
+	}
+	
+	onDeactivate() {
+		// called when page is deactivated
+		return true;
+	}
+	
+	show() {
+		// show page
+		this.div.show();
+	}
+	
+	hide() {
+		this.div.hide();
+	}
+	
+	gosub(anchor) {
+		// go to sub-anchor (article section link)
+	}
+	
+	getFormRow(args) {
+		// render form row using CSS grid elements
+		var html = '';
+		var label = args.label;
+		var content = args.content;
+		var suffix = args.suffix;
+		var caption = args.caption;
+		var extra_classes = args.class || '';
+		delete args.label;
+		delete args.content;
+		delete args.suffix;
+		delete args.caption;
+		
+		html += '<div class="form_row ' + extra_classes + '" ' + compose_attribs(args) + '>';
+		if (label) html += '<div class="fr_label">' + label + '</div>';
+		if (content) html += '<div class="fr_content">' + content + '</div>';
+		if (suffix) html += '<div class="fr_suffix">' + suffix + '</div>';
+		if (caption) html += '<div class="fr_caption"><span>' + caption + '</span></div>';
+		html += '</div>';
+		
+		return html;
+	}
+	
+	getFormText(args) {
+		// render text field for form
+		if (!args.type) args.type = 'text';
+		if (args.disabled) args.disabled = "disabled";
+		else delete args.disabled;
+		return '<input ' + compose_attribs(args) + '/>';
+	}
+	
+	getFormTextarea(args) {
+		// render textarea field for form
+		var value = ('value' in args) ? args.value : '';
+		delete args.value;
+		
+		return '<textarea ' + compose_attribs(args) + '>' + encode_entities(value) + '</textarea>';
+	}
+	
+	getFormCheckbox(args) {
+		// render checkbox for form
+		var html = '';
+		var label = args.label;
+		delete args.label;
+		
+		if (args.auto) {
+			args.checked = app.getPref(args.auto);
+			args['onChange'] = "app.setPref('" + args.auto + "',$(this).is(':checked'))";
+			delete args.auto;
+		}
+		
+		if (args.checked) args.checked = "checked";
+		else delete args.checked;
+		
+		if (args.disabled) args.disabled = "disabled";
+		else delete args.disabled;
+		
+		if (!('value' in args)) args.value = 1;
+		
+		html += '<div class="checkbox_container">';
+		html += '<input type="checkbox" ' + compose_attribs(args) + '/>';
+		html += '<label>' + label + '</label>';
+		html += '</div>';
+		
+		return html;
+	}
+	
+	getFormMenu(args) {
+		// render menu for form
+		var html = '';
+		html += '<div class="select_chevron mdi mdi-unfold-more-horizontal" style="top:2px;"></div>';
+		
+		var opts = args.options;
+		delete args.options;
+		
+		var value = args.value || '';
+		delete args.value;
+		
+		var auto_add = args.auto_add || false;
+		delete args.auto_add;
+		
+		html += '<select ' + compose_attribs(args) + '>';
+		html += render_menu_options( opts, value, auto_add );
+		html += '</select>';
+		
+		return html;
+	}
+	
+	getFormMenuMulti(args) {
+		// render multi-select menu for form
+		var html = '';
+		
+		var opts = args.options;
+		delete args.options;
+		
+		var values = args.values || [];
+		delete args.values;
+		
+		html += '<select multiple ' + compose_attribs(args) + '>';
+		for (var idx = 0, len = opts.length; idx < len; idx++) {
+			var item = opts[idx];
+			var item_name = '';
+			var item_value = '';
+			
+			if (isa_hash(item)) {
+				if (('label' in item) && ('data' in item)) {
+					item_name = item.label;
+					item_value = item.data;
+				}
+				else {
+					item_name = item.title;
+					item_value = item.id;
+				}
+			}
+			else if (isa_array(item)) {
+				item_value = item[0];
+				item_name = item[1];
+			}
+			else {
+				item_name = item_value = item;
+			}
+			html += '<option value="'+item_value+'" '+(find_in_array(values, item_value) ? 'selected="selected"' : '')+'>'+item_name+'</option>';
+		}
+		html += '</select>';
+		
+		return html;
+	}
+	
+	getFormMenuSingle(args) {
+		// render single-select menu for form
+		var html = '';
+		
+		var opts = args.options;
+		delete args.options;
+		
+		var value = args.value || '';
+		delete args.value;
+		
+		var auto_add = args.auto_add || false;
+		delete args.auto_add;
+		
+		html += '<select ' + compose_attribs(args) + '>';
+		html += render_menu_options( opts, value, auto_add );
+		html += '</select>';
+		
+		return html;
+	}
+	
+	getFormFieldset(args) {
+		// get fieldset for form
+		var legend = ('legend' in args) ? args.legend : '';
+		delete args.legend;
+		
+		var content = args.content;
+		delete args.content;
+		
+		return '<fieldset ' + compose_attribs(args) + '><legend>' + legend + '</legend>' + content + '</fieldset>';
+	}
+	
+	getFieldsetInfoGroup(args) {
+		// get info group pair for fieldset in form
+		var html = '';
+		if ('label' in args) html += '<div class="info_label">' + args.label + '</div>';
+		if ('content' in args) html += '<div class="info_value">' + args.content + '</div>';
+		return html;
+	}
+	
+	getFormFile(args) {
+		// render file field for form
+		if (!args.type) args.type = 'file';
+		return '<input ' + compose_attribs(args) + '/>';
+	}
+	
+	getFormDate(args) {
+		// render custom date field for form
+		// coerce value into epoch
+		if (!args.value) args.value = time_now();
+		else if (!args.value.toString().match(/^\d+$/)) {
+			args.value = get_date_args(args.value).epoch;
+		}
+		if (!args.type) args.type = 'hidden';
+		return '<input ' + compose_attribs(args) + '/><div class="form_date"></div>';
+	}
+	
+	getPaginatedTable() {
+		// get html for paginated table
+		// dual-calling convention: (resp, cols, data_type, callback) or (args)
+		var args = null;
+		if (arguments.length == 1) {
+			// custom args calling convention
+			args = arguments[0];
+			
+			// V2 API
+			if (!args.resp && args.rows && args.total) {
+				args.resp = {
+					rows: args.rows,
+					list: { length: args.total }
+				};
+			}
+		}
+		else {
+			// classic calling convention
+			args = {
+				resp: arguments[0],
+				cols: arguments[1],
+				data_type: arguments[2],
+				callback: arguments[3],
+				limit: this.args.limit,
+				offset: this.args.offset || 0
+			};
+		}
+		
+		var resp = args.resp;
+		var cols = args.cols;
+		var data_type = args.data_type;
+		var callback = args.callback;
+		var cpl = args.pagination_link || '';
+		var html = '';
+		
+		// pagination header
+		html += '<div class="pagination">';
+		html += '<table cellspacing="0" cellpadding="0" border="0" width="100%"><tr>';
+		
+		var results = {
+			limit: args.limit,
+			offset: args.offset || 0,
+			total: resp.list.length
+		};
+		
+		var num_pages = Math.floor( results.total / results.limit ) + 1;
+		if (results.total % results.limit == 0) num_pages--;
+		var current_page = Math.floor( results.offset / results.limit ) + 1;
+		
+		html += '<td align="left" width="33%">';
+		html += commify(results.total) + ' ' + pluralize(data_type, results.total) + ' found';
+		html += '</td>';
+		
+		html += '<td align="center" width="34%">';
+		if (num_pages > 1) html += 'Page ' + commify(current_page) + ' of ' + commify(num_pages);
+		else html += '&nbsp;';
+		html += '</td>';
+		
+		html += '<td align="right" width="33%">';
+		
+		if (num_pages > 1) {
+			// html += 'Page: ';
+			if (current_page > 1) {
+				if (cpl) {
+					html += '<span class="link" onMouseUp="'+cpl+'('+Math.floor((current_page - 2) * results.limit)+')">&laquo; Prev</span>';
+				}
+				else {
+					html += '<a href="#' + this.ID + compose_query_string(merge_objects(this.args, {
+						offset: (current_page - 2) * results.limit
+					})) + '">&laquo; Prev</a>';
+				}
+			}
+			html += '&nbsp;&nbsp;&nbsp;';
+
+			var start_page = current_page - 4;
+			var end_page = current_page + 5;
+
+			if (start_page < 1) {
+				end_page += (1 - start_page);
+				start_page = 1;
+			}
+
+			if (end_page > num_pages) {
+				start_page -= (end_page - num_pages);
+				if (start_page < 1) start_page = 1;
+				end_page = num_pages;
+			}
+
+			for (var idx = start_page; idx <= end_page; idx++) {
+				if (idx == current_page) {
+					html += '<b>' + commify(idx) + '</b>';
+				}
+				else {
+					if (cpl) {
+						html += '<span class="link" onMouseUp="'+cpl+'('+Math.floor((idx - 1) * results.limit)+')">' + commify(idx) + '</span>';
+					}
+					else {
+						html += '<a href="#' + this.ID + compose_query_string(merge_objects(this.args, {
+							offset: (idx - 1) * results.limit
+						})) + '">' + commify(idx) + '</a>';
+					}
+				}
+				html += '&nbsp;';
+			}
+
+			html += '&nbsp;&nbsp;';
+			if (current_page < num_pages) {
+				if (cpl) {
+					html += '<span class="link" onMouseUp="'+cpl+'('+Math.floor((current_page + 0) * results.limit)+')">Next &raquo;</span>';
+				}
+				else {
+					html += '<a href="#' + this.ID + compose_query_string(merge_objects(this.args, {
+						offset: (current_page + 0) * results.limit
+					})) + '">Next &raquo;</a>';
+				}
+			}
+		} // more than one page
+		else {
+			html += 'Page 1 of 1';
+		}
+		html += '</td>';
+		html += '</tr></table>';
+		html += '</div>';
+		
+		html += '<div style="margin-top:5px; overflow-x:auto;">';
+		
+		var tattrs = args.attribs || {};
+		if (!tattrs.class) tattrs.class = 'data_table ellip';
+		if (!tattrs.width) tattrs.width = '100%';
+		html += '<table ' + compose_attribs(tattrs) + '>';
+		
+		html += '<tr><th>' + cols.join('</th><th>').replace(/\s+/g, '&nbsp;') + '</th></tr>';
+		
+		for (var idx = 0, len = resp.rows.length; idx < len; idx++) {
+			var row = resp.rows[idx];
+			var tds = callback(row, idx);
+			if (tds) {
+				html += '<tr' + (tds.className ? (' class="'+tds.className+'"') : '') + '>';
+				html += '<td>' + tds.join('</td><td>') + '</td>';
+				html += '</tr>';
+			}
+		} // foreach row
+		
+		if (!resp.rows.length) {
+			html += '<tr><td colspan="'+cols.length+'" align="center" style="padding-top:10px; padding-bottom:10px; font-weight:bold;">';
+			html += 'No '+pluralize(data_type)+' found.';
+			html += '</td></tr>';
+		}
+		
+		html += '</table>';
+		html += '</div>';
+		
+		return html;
+	}
+	
+	getBasicTable() {
+		// get html for sorted table (fake pagination, for looks only)
+		var html = '';
+		var args = null;
+		
+		if (arguments.length == 1) {
+			// custom args calling convention
+			args = arguments[0];
+		}
+		else {
+			// classic calling convention
+			args = {
+				rows: arguments[0],
+				cols: arguments[1],
+				data_type: arguments[2],
+				callback: arguments[3]
+			};
+		}
+		
+		var rows = args.rows;
+		var cols = args.cols;
+		var data_type = args.data_type;
+		var callback = args.callback;
+		
+		// pagination
+		html += '<div class="pagination">';
+		html += '<table cellspacing="0" cellpadding="0" border="0" width="100%"><tr>';
+		
+		html += '<td align="left" width="33%">';
+		if (cols.headerLeft) html += cols.headerLeft;
+		else html += commify(rows.length) + ' ' + pluralize(data_type, rows.length) + '';
+		html += '</td>';
+		
+		html += '<td align="center" width="34%">';
+			html += cols.headerCenter || '&nbsp;';
+		html += '</td>';
+		
+		html += '<td align="right" width="33%">';
+			html += cols.headerRight || 'Page 1 of 1';
+		html += '</td>';
+		
+		html += '</tr></table>';
+		html += '</div>';
+		
+		html += '<div style="margin-top:5px; overflow-x:auto;">';
+		
+		var tattrs = args.attribs || {};
+		if (!tattrs.class) tattrs.class = 'data_table ellip';
+		if (!tattrs.width) tattrs.width = '100%';
+		html += '<table ' + compose_attribs(tattrs) + '>';
+		
+		html += '<tr><th style="white-space:nowrap;">' + cols.join('</th><th style="white-space:nowrap;">') + '</th></tr>';
+		
+		for (var idx = 0, len = rows.length; idx < len; idx++) {
+			var row = rows[idx];
+			var tds = callback(row, idx);
+			if (tds.insertAbove) html += tds.insertAbove;
+			html += '<tr' + (tds.className ? (' class="'+tds.className+'"') : '') + (row.id ? (' data-id="'+row.id+'"') : '') + '>';
+			html += '<td>' + tds.join('</td><td>') + '</td>';
+			html += '</tr>';
+		} // foreach row
+		
+		if (!rows.length) {
+			html += '<tr><td colspan="'+cols.length+'" align="center" style="padding-top:10px; padding-bottom:10px; font-weight:bold;">';
+			html += 'No '+pluralize(data_type)+' found.';
+			html += '</td></tr>';
+		}
+		
+		html += '</table>';
+		html += '</div>';
+		
+		return html;
+	}
+	
+	requireLogin(args) {
+		// user must be logged into to continue
+		var self = this;
+		
+		if (!app.user) {
+			// require login
+			app.navAfterLogin = this.ID;
+			if (args && num_keys(args)) app.navAfterLogin += compose_query_string(args);
+			
+			this.div.hide();
+			
+			var session_id = app.getPref('session_id') || '';
+			if (session_id) {
+				Debug.trace("User has cookie, recovering session: " + session_id);
+				
+				app.api.post( 'user/resume_session', {
+					session_id: session_id
+				}, 
+				function(resp) {
+					if (resp.user) {
+						Debug.trace("User Session Resume: " + resp.username + ": " + resp.session_id);
+						Dialog.hideProgress();
+						app.doUserLogin( resp );
+						Nav.refresh();
+					}
+					else {
+						Debug.trace("User cookie is invalid, redirecting to login page");
+						// Nav.go('Login');
+						self.setPref('session_id', '');
+						self.requireLogin(args);
+					}
+				} );
+			}
+			else if (app.config.external_users) {
+				Debug.trace("User is not logged in, querying external user API");
+				app.doExternalLogin();
+			}
+			else {
+				Debug.trace("User is not logged in, redirecting to login page (will return to " + this.ID + ")");
+				setTimeout( function() { Nav.go('Login'); }, 1 );
+			}
+			return false;
+		}
+		return true;
+	}
+	
+	isAdmin() {
+		// return true if user is logged in and admin, false otherwise
+		// Note: This is used for UI decoration ONLY -- all privileges are checked on the server
+		return( app.user && app.user.privileges && app.user.privileges.admin );
+	}
+	
+	getNiceAPIKey(item, link) {
+		if (!item) return 'n/a';
+		var key = item.api_key || item.key;
+		var title = item.api_title || item.title;
+		
+		var html = '';
+		var icon = '<i class="mdi mdi-key">&nbsp;</i>';
+		if (link) {
+			if (link === true) link = '#APIKeys?sub=edit&id=' + item.id;
+			html += '<a href="' + link + '" style="text-decoration:none">';
+			html += icon + '<span style="text-decoration:underline">' + title + '</span></a>';
+		}
+		else {
+			html += icon + title;
+		}
+		
+		return html;
+	}
+	
+	getNiceUsername(user, link) {
+		if (!user) return 'n/a';
+		if ((typeof(user) == 'object') && (user.key || user.api_title)) {
+			return this.getNiceAPIKey(user, link);
+		}
+		var username = user.username ? user.username : user;
+		if (!username || (typeof(username) != 'string')) return 'n/a';
+		
+		var html = '';
+		var icon = '<i class="mdi mdi-account">&nbsp;</i>';
+		if (link) {
+			if (link === true) link = '#Users?sub=edit&username=' + username;
+			html += '<a href="' + link + '" style="text-decoration:none">';
+			html += icon + '<span style="text-decoration:underline">' + username + '</span></a>';
+		}
+		else {
+			html += icon + username;
+		}
+		
+		return html;
+	}
+	
+	getNiceEnvironment(item, link) {
+		// get formatted env with icon, plus optional link
+		if (!item) return '(None)';
+		
+		var html = '';
+		var icon = '<i class="mdi mdi-wan">&nbsp;</i>';
+		if (link) {
+			if (link === true) link = '#Environments?sub=edit&id=' + item.id;
+			html += '<a href="' + link + '" style="text-decoration:none">';
+			html += icon + '<span style="text-decoration:underline">' + item.title + '</span></a>';
+		}
+		else {
+			html += icon + item.title;
+		}
+		
+		return html;
+	}
+	
+	getNiceGroupList(group_match, link) {
+		// convert regexp into comma-separated group title list
+		if (group_match == '.+') return '(All)';
+		if (group_match == '(?!)') return '(None)';
+		
+		var titles = [];
+		group_match.split(/\W+/).forEach( function(group_id) {
+			if (group_id.match(/^\w+$/)) {
+				var group = find_object( config.groups, { id: group_id } );
+				if (!group) group = { id: group_id, title: group_id };
+				var title = '';
+				if (link) title += '<a href="#Groups?sub=edit&id=' + group.id + '">';
+				title += '<i class="mdi mdi-server-network">&nbsp;</i>' + group.title;
+				if (link) title += '</a>';
+				titles.push( title );
+			}
+		});
+		
+		return titles.join(', ');
+	}
+	
+	getNiceGroup(item, link) {
+		// get formatted group with icon, plus optional link
+		if (!item) return '(None)';
+		
+		var html = '';
+		var icon = '<i class="mdi mdi-server-network">&nbsp;</i>';
+		if (link) {
+			if (link === true) link = '#Groups?sub=edit&id=' + item.id;
+			html += '<a href="' + link + '" style="text-decoration:none">';
+			html += icon + '<span style="text-decoration:underline">' + item.title + '</span></a>';
+		}
+		else {
+			html += icon + item.title;
+		}
+		
+		return html;
+	}
+	
+	setGroupVisible(group, visible) {
+		// set web groups of form fields visible or invisible, 
+		// according to master checkbox for each section
+		var selector = 'tr.' + group + 'group';
+		if (visible) {
+			if ($(selector).hasClass('collapse')) {
+				$(selector).hide().removeClass('collapse');
+			}
+			$(selector).show(250);
+		}
+		else $(selector).hide(250);
+		
+		return this; // for chaining
+	}
+	
+	checkUserExists(field) {
+		// check if user exists, update UI checkbox
+		// called after field changes
+		var $field = $(field);
+		var username = trim( $field.val().toLowerCase() );
+		var $elem = $field.closest('.form_row').find('.fr_suffix .checker');
+		
+		if (username.match(/^[\w\-\.]+$/)) {
+			// check with server
+			app.api.get('app/check_user_exists', { username: username }, function(resp) {
+				if (resp.user_exists) {
+					// username taken
+					$elem.css('color','red').html('<span class="mdi mdi-alert-circle"></span>').attr('title', "Username is taken.");
+					$field.addClass('warning');
+				}
+				else {
+					// username is valid and available!
+					$elem.css('color','green').html('<span class="mdi mdi-check-circle"></span>').attr('title', "Username available!");
+					$field.removeClass('warning');
+				}
+			} );
+		}
+		else if (username.length) {
+			// bad username
+			$elem.css('color','red').html('<span class="mdi mdi-alert-decagram"></span>').attr('title', "Username is malformed.");
+			$field.addClass('warning');
+		}
+		else {
+			// empty
+			$elem.html('').removeAttr('title');
+			$field.removeClass('warning');
+		}
+	}
+	
+	check_add_remove_me($elem) {
+		// check if user's e-mail is contained in text field or not
+		var value = $elem.val().toLowerCase();
+		var email = app.user.email.toLowerCase();
+		var regexp = new RegExp( "\\b" + escape_regexp(email) + "\\b" );
+		return !!value.match(regexp);
+	}
+	
+	update_add_remove_me($elems) {
+		// update add/remove me text based on if user's e-mail is contained in text field
+		var self = this;
+				
+		$elems.each( function() {
+			var $elem = $(this);
+			var $span = $elem.next();
+						
+			if (self.check_add_remove_me($elem)) $span.html( '&raquo; Remove me' );
+			else $span.html( '&laquo; Add me' );
+		} );
+	}
+	
+	add_remove_me($elem) {
+		// toggle user's e-mail in/out of text field
+		var value = trim( $elem.val().replace(/\,\s*\,/g, ',').replace(/^\s*\,\s*/, '').replace(/\s*\,\s*$/, '') );
+		
+		if (this.check_add_remove_me($elem)) {
+			// remove e-mail
+			var email = app.user.email.toLowerCase();
+			var regexp = new RegExp( "\\b" + escape_regexp(email) + "\\b", "i" );
+			value = value.replace( regexp, '' ).replace(/\,\s*\,/g, ',').replace(/^\s*\,\s*/, '').replace(/\s*\,\s*$/, '');
+			$elem.val( trim(value) );
+		}
+		else {
+			// add email
+			if (value) value += ', ';
+			$elem.val( value + app.user.email );
+		}
+		
+		this.update_add_remove_me($elem);
+	}
+	
+	get_custom_combo_unit_box(id, value, items, class_name) {
+		// get HTML for custom combo text/menu, where menu defines units of measurement
+		// items should be array for use in render_menu_options(), with an increasing numerical value
+		if (!class_name) class_name = 'std_combo_unit_table';
+		var units = 0;
+		var value = parseInt( value || 0 );
+		
+		for (var idx = items.length - 1; idx >= 0; idx--) {
+			var max = items[idx][0];
+			if ((value >= max) && (value % max == 0)) {
+				units = max;
+				value = Math.floor( value / units );
+				idx = -1;
+			}
+		}
+		if (!units) {
+			// no exact match, so default to first unit in list
+			units = items[0][0];
+			value = Math.floor( value / units );
+		}
+		
+		return (
+			'<table cellspacing="0" cellpadding="0" class="'+class_name+'"><tr>' + 
+				'<td style="padding:0"><input type="text" id="'+id+'" style="width:30px;" value="'+value+'"/></td>' + 
+				'<td style="padding:0"><select id="'+id+'_units">' + render_menu_options(items, units) + '</select></td>' + 
+			'</tr></table>' 
+		);
+	}
+	
+	get_relative_time_combo_box(id, value, class_name, inc_seconds) {
+		// get HTML for combo textfield/menu for a relative time based input
+		// provides Minutes, Hours and Days units
+		var unit_items = [[60,'Minutes'], [3600,'Hours'], [86400,'Days']];
+		if (inc_seconds) unit_items.unshift( [1,'Seconds'] );
+		
+		return this.get_custom_combo_unit_box( id, value, unit_items, class_name );
+	}
+	
+	get_relative_size_combo_box(id, value, class_name) {
+		// get HTML for combo textfield/menu for a relative size based input
+		// provides MB, GB and TB units
+		var TB = 1024 * 1024 * 1024 * 1024;
+		var GB = 1024 * 1024 * 1024;
+		var MB = 1024 * 1024;
+		
+		return this.get_custom_combo_unit_box( id, value, [[MB,'MB'], [GB,'GB'], [TB,'TB']], class_name );
+	}
+	
+	setupDraggableTable(args) {
+		// allow table rows to be drag-sorted
+		// args: { table_sel, handle_sel, drag_ghost_sel, drag_ghost_x, drag_ghost_y, callback }
+		var $table = $(args.table_sel);
+		var $rows = $table.find('tr').slice(1); // omit header row
+		var $cur = null;
+		
+		var createDropZone = function($tr, idx, pos) {
+			pos.top -= Math.floor( pos.height / 2 );
+			
+			$('<div><div class="dz_bar"></div></div>')
+				.addClass('dropzone')
+				.css({
+					left: '' + pos.left + 'px',
+					top: '' + pos.top + 'px',
+					width: '' + pos.width + 'px',
+					height: '' + pos.height + 'px'
+				})
+				.appendTo('body')
+				.on('dragover', function(event) {
+					var e = event.originalEvent;
+					e.preventDefault();
+					e.dataTransfer.effectAllowed = "move";
+				})
+				.on('dragenter', function(event) {
+					var e = event.originalEvent;
+					e.preventDefault();
+					$(this).addClass('drag');
+				})
+				.on('dragleave', function(event) {
+					$(this).removeClass('drag');
+				})
+				.on('drop', function(event) {
+					var e = event.originalEvent;
+					e.preventDefault();
+					
+					// make sure we didn't drop on ourselves
+					if (idx == $cur.data('drag_idx')) return false;
+					
+					// see if we need to insert above or below target
+					var above = true;
+					var pos = $tr.offset();
+					var height = $tr.height();
+					var y = event.clientY;
+					if (y > pos.top + (height / 2)) above = false;
+					
+					// remove element being dragged
+					$cur.detach();
+					
+					// insert at new location
+					if (above) $tr.before( $cur );
+					else $tr.after( $cur );
+					
+					// fire callback, pass new sorted collection
+					args.callback( $table.find('tr').slice(1) );
+				});
+		}; // createDropZone
+		
+		$rows.each( function(row_idx) {
+			var $handle = $(this).find(args.handle_sel);
+			
+			$handle.on('dragstart', function(event) {
+				var e = event.originalEvent;
+				var $tr = $cur = $(this).closest('tr');
+				var $ghost = $tr.find(args.drag_ghost_sel).addClass('dragging');
+				var ghost_x = ('drag_ghost_x' in args) ? args.drag_ghost_x : Math.floor($ghost.width() / 2);
+				var ghost_y = ('drag_ghost_y' in args) ? args.drag_ghost_y : Math.floor($ghost.height() / 2);
+				
+				e.dataTransfer.setDragImage( $ghost.get(0), ghost_x, ghost_y );
+				e.dataTransfer.effectAllowed = 'move';
+				e.dataTransfer.setData('text/html', 'blah'); // needed for FF.
+				
+				// need to recalc $rows for each drag
+				$rows = $table.find('tr').slice(1);
+				
+				$rows.each( function(idx) {
+					var $tr = $(this);
+					$tr.data('drag_idx', idx);
+				});
+				
+				// and we need to recalc row_idx too
+				var row_idx = $tr.data('drag_idx');
+				
+				// create drop zones for each row
+				// (except those immedately surrounding the row we picked up)
+				$rows.each( function(idx) {
+					var $tr = $(this);
+					if ((idx != row_idx) && (idx != row_idx + 1)) {
+						var pos = $tr.offset();
+						pos.width = $tr.width();
+						pos.height = $tr.height();
+						createDropZone( $tr, idx, pos );
+					}
+				});
+				
+				// one final zone below table (possibly)
+				if (row_idx != $rows.length - 1) {
+					var $last_tr = $rows.slice(-1);
+					var pos = $last_tr.offset();
+					pos.width = $last_tr.width();
+					pos.height = $last_tr.height();
+					pos.top += pos.height;
+					createDropZone( $last_tr, $rows.length, pos );
+				}
+			}); // dragstart
+			
+			$handle.on('dragend', function(event) {
+				// cleanup drop zones
+				$('div.dropzone').remove();
+				$rows.removeData('drag_idx');
+				$table.find('.dragging').removeClass('dragging');
+			}); // dragend
+			
+		} ); // foreach row
+	}
+	
+	cancelDrag(table_sel) {
+		// cancel drag operation in progress (well, as best we can)
+		var $table = $(table_sel);
+		if (!$table.length) return;
+		
+		var $rows = $table.find('tr').slice(1); // omit header row
+		$('div.dropzone').remove();
+		$rows.removeData('drag_idx');
+		$table.find('.dragging').removeClass('dragging');
+	}
+	
+	doFullPageError(msg) {
+		// show full page error
+		this.fullPageError({ description: msg });
+	}
+	
+	fullPageError(resp) {
+		// show "full page" inline error dialog
+		// suitable for binding to the API errorCallback
+		var html = '';
+		html += '<div style="height:75px;"></div>';
+		
+		html += '<div class="box">';
+			html += '<div class="box_title error">An Error Occurred</div>';
+			html += '<div class="box_content">' + resp.description + '</div>';
+		html += '</div>';
+		
+		html += '<div style="height:75px;"></div>';
+		this.div.html(html);
+	}
+	
+}; // class Page
+
+//
+// Page Manager
+//
+
+window.PageManager = class PageManager {
+	// 'PageManager' class handles all virtual pages in the application
+	
+	// methods
+	constructor(page_list) {
+		// class constructor, create all pages
+		// page_list should be array of components from master config
+		// each one should have at least a 'ID' parameter
+		// anything else is copied into object verbatim
+		this.pages = [];
+		this.page_list = page_list;
+		this.current_page_id = '';
+		var $main = $('div.main');
+		
+		for (var idx = 0, len = page_list.length; idx < len; idx++) {
+			var page_def = page_list[idx];
+			Debug.trace( 'page', "Initializing page: " + page_def.ID );
+			assert(Page[ page_def.ID ], "Page class not found: Page." + page_def.ID);
+			
+			var div = $('<div></div>')
+				.prop('id', 'page_' + page_def.ID)
+				.addClass('page')
+				.css('display', 'none');
+			$main.append(div);
+			
+			var page = new Page[ page_def.ID ]( page_def, div );
+			page.args = {};
+			page.onInit();
+			this.pages.push(page);
+			
+			// add click handler for tab
+			$('#tab_'+page.ID).click( function(event) {
+				Nav.go( this._page_id );
+			} )[0]._page_id = page.ID;
+		}
+		
+		this.initSidebar();
+	}
+	
+	find(id) {
+		// locate page by ID (i.e. Plugin Name)
+		var page = find_object( this.pages, { ID: id } );
+		if (!page) Debug.trace('PageManager', "Could not find page: " + id);
+		return page;
+	}
+	
+	activate(id, old_id, args) {
+		// send activate event to page by id (i.e. Plugin Name)
+		$('#page_'+id).show();
+		$('.sidebar .section_item').removeClass('active').addClass('inactive');
+		$('#tab_'+id).removeClass('inactive').addClass('active');
+		var page = this.find(id);
+		page.active = true;
+		
+		if (!args) args = {};
+		
+		// if we are navigating here from a different page, AND the new sub mismatches the old sub, clear the page html
+		var new_sub = args.sub || '';
+		if (old_id && (id != old_id) && (typeof(page._old_sub) != 'undefined') && (new_sub != page._old_sub) && page.div) {
+			page.div.html('');
+		}
+						
+		var result = page.onActivate.apply(page, [args]);
+		if (typeof(result) == 'boolean') return result;
+		else throw("Page " + id + " onActivate did not return a boolean!");
+		
+		// expand section if applicable
+		var $sect = $('#tab_'+id).parent().prev();
+		if ($sect.length && $sect.hasClass('section_title')) this.expandSidebarGroup( $sect );
+	}
+	
+	deactivate(id, new_id) {
+		// send deactivate event to page by id (i.e. Plugin Name)
+		var page = this.find(id);
+		var result = page.onDeactivate(new_id);
+		if (result) {
+			$('#page_'+id).hide();
+			$('#tab_'+id).removeClass('active').addClass('inactive');
+			// $('#d_message').hide();
+			page.active = false;
+			
+			// if page has args.sub, save it for clearing html on reactivate, if page AND sub are different
+			if (page.args) page._old_sub = page.args.sub || '';
+		}
+		return result;
+	}
+	
+	click(id, args) {
+		// exit current page and enter specified page
+		Debug.trace('page', "Switching pages to: " + id);
+		var old_id = this.current_page_id;
+		if (this.current_page_id) {
+			var result = this.deactivate( this.current_page_id, id );
+			if (!result) return false; // current page said no
+		}
+		this.current_page_id = id;
+		this.old_page_id = old_id;
+		
+		window.scrollTo( 0, 0 );
+		
+		var result = this.activate(id, old_id, args);
+		if (!result) {
+			// new page has rejected activation, probably because a login is required
+			// un-hide previous page div, but don't call activate on it
+			$('#page_'+id).hide();
+			this.current_page_id = '';
+			// if (old_id) {
+				// $('page_'+old_id).show();
+				// this.current_page_id = old_id;
+			// }
+		}
+		
+		return true;
+	}
+	
+	// Sidebar
+	
+	initSidebar() {
+		// setup sidebar "tabs"
+		var self = this;
+		$('.sidebar .section_title').off('mouseup').on('mouseup', function() {
+			self.toggleSidebarGroup(this);
+		});
+		
+		// set initial state
+		$('.sidebar .section_title').each( function() {
+			var $sect = $(this);
+			if (!$sect.hasClass('expanded')) {
+				$sect.next().css('height', 0).scrollTop( $sect.next()[0].scrollHeight );
+			}
+		});
+	}
+	
+	toggleSidebarGroup(sect) {
+		// toggle sidebar group open/closed
+		var $sect = $(sect);
+		if ($sect.hasClass('expanded')) this.collapseSidebarGroup(sect);
+		else this.expandSidebarGroup(sect);
+	}
+	
+	collapseSidebarGroup(sect) {
+		// collapse tab section in sidebar
+		var $sect = $(sect);
+		if ($sect.hasClass('expanded')) {
+			$sect.removeClass('expanded');
+			$sect.next().animate({
+				scrollTop: $sect.next()[0].scrollHeight,
+				height: 0
+			}, {
+				duration: 500,
+				easing: 'easeOutQuart'
+			});
+		}
+	}
+	
+	expandSidebarGroup(sect) {
+		// expand tab section in sidebar
+		var $sect = $(sect);
+		if (!$sect.hasClass('expanded')) {
+			$sect.addClass('expanded');
+			$sect.next().animate({
+				scrollTop: 0,
+				height: $sect.next()[0].scrollHeight
+			}, {
+				duration: 500,
+				easing: 'easeOutQuart'
+			});
+		}
+	}
+	
+}; // class PageManager
+
+var Nav = {
+	
+	/**
+	 * Virtual Page Navigation System
+	 **/
+	
+	loc: '',
+	old_loc: '',
+	inited: false,
+	nodes: [],
+	
+	init: function() {
+		// initialize nav system
+		assert( window.config, "window.config not present.");
+		
+		if (!this.inited) {
+			this.inited = true;
+			this.loc = 'init';
+			this.monitor();
+			
+			window.addEventListener("hashchange", function(event) {
+				Nav.monitor();
+			}, false);
+		}
+	},
+	
+	monitor: function() {
+		// monitor browser location and activate handlers as needed
+		var parts = window.location.href.split(/\#/);
+		var anchor = parts[1];
+		if (!anchor) anchor = config.DefaultPage || 'Main';
+		
+		var full_anchor = '' + anchor;
+		var sub_anchor = '';
+		
+		// anchor = anchor.replace(/\%7C/, '|');
+		if (anchor.match(/\|(\w+)$/)) {
+			// inline section anchor after article name, pipe delimited
+			sub_anchor = RegExp.$1.toLowerCase();
+			anchor = anchor.replace(/\|(\w+)$/, '');
+		}
+		
+		if ((anchor != this.loc) && !anchor.match(/^_/)) { // ignore doxter anchors
+			Debug.trace('nav', "Caught navigation anchor: " + full_anchor);
+			
+			var page_name = '';
+			var page_args = {};
+			if (full_anchor.match(/^\w+\?.+/)) {
+				parts = full_anchor.split(/\?/);
+				page_name = parts[0];
+				page_args = parse_query_string( parts[1] );
+			}
+			else {
+				parts = full_anchor.split(/\//);
+				page_name = parts[0];
+				page_args = {};
+			}
+			
+			Debug.trace('nav', "Calling page: " + page_name + ": " + JSON.stringify(page_args));
+			Dialog.hide();
+			// app.hideMessage();
+			app.pushSidebar();
+			
+			var result = app.page_manager.click( page_name, page_args );
+			if (result) {
+				this.old_loc = this.loc;
+				if (this.old_loc == 'init') this.old_loc = config.DefaultPage || 'Main';
+				this.loc = anchor;
+			}
+			else {
+				// current page aborted navigation -- recover current page without refresh
+				this.go( this.loc );
+			}
+		}
+		else if (sub_anchor != this.sub_anchor) {
+			Debug.trace('nav', "Caught sub-anchor: " + sub_anchor);
+			$P().gosub( sub_anchor );
+		} // sub-anchor changed
+		
+		this.sub_anchor = sub_anchor;	
+	},
+	
+	go: function(anchor, force) {
+		// navigate to page
+		anchor = anchor.replace(/^\#/, '');
+		if (force) {
+			if (anchor == this.loc) {
+				this.loc = 'init';
+				this.monitor();
+			}
+			else {
+				this.loc = 'init';
+				window.location.href = '#' + anchor;
+			}
+		}
+		else {
+			window.location.href = '#' + anchor;
+		}
+	},
+	
+	prev: function() {
+		// return to previous page
+		this.go( this.old_loc || config.DefaultPage || 'Main' );
+	},
+	
+	refresh: function() {
+		// re-nav to current page
+		this.loc = 'refresh';
+		this.monitor();
+	},
+	
+	currentAnchor: function() {
+		// return current page anchor
+		var parts = window.location.href.split(/\#/);
+		var anchor = parts[1] || '';
+		var sub_anchor = '';
+		
+		anchor = anchor.replace(/\%7C/, '|');
+		if (anchor.match(/\|(\w+)$/)) {
+			// inline section anchor after article name, pipe delimited
+			sub_anchor = RegExp.$1.toLowerCase();
+			anchor = anchor.replace(/\|(\w+)$/, '');
+		}
+		
+		return anchor;
+	}
+	
+}; // Nav
