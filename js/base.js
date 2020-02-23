@@ -7,6 +7,7 @@ var app = {
 	proto: location.protocol.match(/^https/i) ? 'https://' : 'http://',
 	secure: !!location.protocol.match(/^https/i),
 	retina: (window.devicePixelRatio > 1),
+	mobile: !!navigator.userAgent.match(/(iOS|iPhone|iPad|Android)/),
 	base_api_url: '/api',
 	plain_text_post: false,
 	prefs: {},
@@ -139,7 +140,7 @@ var app = {
 		}
 		
 		if (Dialog.active) Dialog.autoResize();
-		else if (Popover.enabled) Popover.detach();
+		else if (Popover.enabled && !this.mobile) Popover.detach();
 	},
 	
 	handleResizeDelay: function() {
