@@ -30,7 +30,7 @@ function compose_query_string(queryObj) {
 	for (var key in queryObj) {
 		var values = always_array(queryObj[key]);
 		for (var idx = 0, len = values.length; idx < len; idx++) {
-			qs += (qs.length ? '&' : '?') + escape(key) + '=' + escape(values[idx]);
+			qs += (qs.length ? '&' : '?') + encodeURIComponent(key) + '=' + encodeURIComponent(values[idx]);
 		}
 	}
 	return qs;

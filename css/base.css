@@ -647,6 +647,11 @@ div.box_title {
 	color: var(--theme-color);
 	/* text-shadow: 0px 1px 0px var(--background-color); */
 }
+div.box_title.error {
+	font-size: 18px;
+	color: var(--red);
+	padding-bottom: 0px;
+}
 
 div.box_title_widget {
 	float: right;
