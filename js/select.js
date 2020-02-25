@@ -32,7 +32,7 @@ var SingleSelect = {
 				
 				html += '<div class="sel_dialog_label">' + ($this.attr('title') || 'Select Item') + '</div>';
 				html += '<div class="sel_dialog_search_container">';
-					html += '<input type="text" id="fe_sel_dialog_search" class="sel_dialog_search" value=""/>';
+					html += '<input type="text" id="fe_sel_dialog_search" class="sel_dialog_search" autocomplete="off" value=""/>';
 					html += '<div class="sel_dialog_search_icon"><i class="mdi mdi-magnify"></i></div>';
 				html += '</div>';
 				html += '<div id="d_sel_dialog_scrollarea" class="sel_dialog_scrollarea">';
@@ -156,7 +156,7 @@ var MultiSelect = {
 				
 				html += '<div class="sel_dialog_label">' + ($this.attr('title') || 'Select Items') + '</div>';
 				html += '<div class="sel_dialog_search_container">';
-					html += '<input type="text" id="fe_sel_dialog_search" class="sel_dialog_search" value=""/>';
+					html += '<input type="text" id="fe_sel_dialog_search" class="sel_dialog_search" autocomplete="off" value=""/>';
 					html += '<div class="sel_dialog_search_icon"><i class="mdi mdi-magnify"></i></div>';
 				html += '</div>';
 				html += '<div id="d_sel_dialog_scrollarea" class="sel_dialog_scrollarea">';
@@ -283,7 +283,7 @@ var TextSelect = {
 				
 				html += '<div class="sel_dialog_label">' + ($this.attr('title') || 'Add New Item') + '</div>';
 				html += '<div class="sel_dialog_search_container">';
-					html += '<input type="text" id="fe_sel_dialog_text" class="sel_dialog_search" style="border-radius:2px;" value=""/>';
+					html += '<input type="text" id="fe_sel_dialog_text" class="sel_dialog_search" style="border-radius:2px;" autocomplete="off" value=""/>';
 					html += '<div class="sel_dialog_search_icon"><i class="mdi ' + ($this.attr('icon') || 'mdi-plus') + '"></i></div>';
 				html += '</div>';
 				
