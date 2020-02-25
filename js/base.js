@@ -234,6 +234,9 @@ var app = {
 			args.timeout = 1000 * 10; // 10 seconds
 			args.headers = headers;
 			
+			var retries = args.retries || 0;
+			delete args.retries;
+			
 			$.ajax(args).done( function(text) {
 				// parse JSON and fire callback
 				Debug.trace( 'api', "Received response from server: " + text );
@@ -265,7 +268,16 @@ var app = {
 					case 'timeout': desc = "The request timed out.  Please try again."; break;
 					case 'error': desc = "An unknown network error occurred.  Please try again."; break;
 				}
-				Debug.trace( 'api', "Network Error: " + code + ": " + desc );
+				Debug.trace( 'api', "Network Error: " + code + ": " + desc + " (retries: " + retries + ")" );
+				
+				// only retry 5xx errors (4xx are permanent)
+				if ((code >= 500) && (retries > 0)) {
+					retries--;
+					args.retries = retries;
+					setTimeout( function() { app.api.request(url, args, callback, errorCallback); }, 250 );
+					return;
+				}
+				
 				if (errorCallback) errorCallback({ code: code, description: desc });
 				else app.doError( "Network Error: " + code + ": " + desc );
 			} );
@@ -289,7 +301,8 @@ var app = {
 			this.request(url, {
 				type: "POST",
 				data: json_raw,
-				contentType: app.plain_text_post ? 'text/plain' : 'application/json'
+				contentType: app.plain_text_post ? 'text/plain' : 'application/json',
+				retries: 5
 			}, callback, errorCallback);
 		},
 		
@@ -305,7 +318,8 @@ var app = {
 			Debug.trace( 'api', "Sending HTTP GET to: " + url );
 			
 			this.request(url, {
-				type: "GET"
+				type: "GET",
+				retries: 5
 			}, callback, errorCallback);
 		}
 	}, // api
