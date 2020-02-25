@@ -78,7 +78,14 @@ var Popover = {
 	handleKeyDown: function(event) {
 		// intercept keydown for custom actions
 		if (!this.enabled) return;
-		if (this.onKeyDown) this.onKeyDown(event);
+		
+		if (this.onKeyDown) {
+			this.onKeyDown(event);
+		}
+		else if (event.keyCode == 27) {
+			event.preventDefault();
+			this.detach();
+		}
 	}
 	
 };
