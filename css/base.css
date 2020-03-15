@@ -999,7 +999,7 @@ body.dark .dialog_content .form_row input, body.dark .dialog_content .form_row t
 	background: var(--border-color);
 	color: var(--body-text-color);
 	
-	font-size: 12px;
+	font-size: 13px;
 	/* font-weight: bold; */
 	
 	overflow: hidden;

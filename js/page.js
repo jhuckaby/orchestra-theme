@@ -650,6 +650,11 @@ window.Page = class Page {
 					$elem.css('color','red').html('<span class="mdi mdi-alert-circle"></span>').attr('title', "Username is taken.");
 					$field.addClass('warning');
 				}
+				else if (resp.user_invalid) {
+					// bad username
+					$elem.css('color', 'red').html('<span class="mdi mdi-alert-decagram"></span>').attr('title', "Username is malformed.");
+					$field.addClass('warning');
+				}
 				else {
 					// username is valid and available!
 					$elem.css('color','green').html('<span class="mdi mdi-check-circle"></span>').attr('title', "Username available!");
@@ -897,7 +902,7 @@ window.Page = class Page {
 		html += '<div style="height:75px;"></div>';
 		
 		html += '<div class="box">';
-			html += '<div class="box_title error">An Error Occurred</div>';
+			html += '<div class="box_title error">' + (resp.title || 'An Error Occurred') + '</div>';
 			html += '<div class="box_content">' + resp.description + '</div>';
 		html += '</div>';
 		
