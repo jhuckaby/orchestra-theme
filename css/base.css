@@ -328,7 +328,7 @@ div.section_title.expanded > i.ctrl {
 
 .section_item {
 	display: block;
-	padding-left: 40px;
+	padding-left: 37px;
 	padding-right: 15px;
 	height: 25px;
 	line-height: 25px;
@@ -1750,10 +1750,10 @@ div.ellip {
 }
 
 .data_table tr td a i.mdi {
-	padding-right: 3px;
+	padding-right: 2px;
 }
 .data_table tr td a i.mdi:before {
-	transform: scale(1.25);
+	transform: scale(1.20);
 }
 
 div.dropzone {
