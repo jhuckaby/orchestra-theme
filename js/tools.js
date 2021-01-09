@@ -326,6 +326,53 @@ function render_menu_options(items, sel_value, auto_add) {
 		var item = items[idx];
 		var item_name = '';
 		var item_value = '';
+		var attribs = {};
+		
+		if (isa_hash(item)) {
+			if (('label' in item) && ('data' in item)) {
+				item_name = item.label;
+				item_value = item.data;
+			}
+			else {
+				item_name = item.title;
+				item_value = item.id;
+			}
+			if (item.icon) attribs['data-icon'] = item.icon;
+		}
+		else if (isa_array(item)) {
+			item_value = item[0];
+			item_name = item[1];
+		}
+		else {
+			item_name = item_value = item;
+		}
+		
+		attribs.value = item_value;
+		if (item_value == sel_value) attribs.selected = 'selected';
+		html += '<option ' + compose_attribs(attribs) + '>' + item_name + '</option>';
+		
+		if (item_value == sel_value) found = true;
+	}
+	
+	if (!found && (str_value(sel_value) != '') && auto_add) {
+		html += '<option value="'+sel_value+'" selected="selected">'+sel_value+'</option>';
+	}
+	
+	return html;
+}
+
+function populate_menu(menu, items, sel_values, auto_add) {
+	// repopulate menu, supports multi-select
+	if (!sel_values) sel_values = [];
+	if (typeof(sel_values) == 'string') sel_values = [sel_values];
+	if (!auto_add) auto_add = false;
+	
+	menu.options.length = 0;
+	
+	items.forEach( function(item, idx) {
+		var item_name = '';
+		var item_value = '';
+		
 		if (isa_hash(item)) {
 			if (('label' in item) && ('data' in item)) {
 				item_name = item.label;
@@ -343,16 +390,30 @@ function render_menu_options(items, sel_value, auto_add) {
 		else {
 			item_name = item_value = item;
 		}
-		html += '<option value="'+item_value+'" '+((item_value == sel_value) ? 'selected="selected"' : '')+'>'+item_name+'</option>';
-		if (item_value == sel_value) found = true;
-	}
+		
+		var opt = new Option( item_name, item_value );
+		if (sel_values.includes(item_value)) {
+			opt.selected = true;
+			sel_values.splice( sel_values.indexOf(item_value), 1 );
+		}
+		menu.options[ menu.options.length ] = opt;
+		
+		if (isa_hash(item) && item.icon && opt.setAttribute) opt.setAttribute('data-icon', item.icon);
+	}); // foreach item
 	
-	if (!found && (str_value(sel_value) != '') && auto_add) {
-		html += '<option value="'+sel_value+'" selected="selected">'+sel_value+'</option>';
-	}
-	
-	return html;
-}
+	if (sel_values.length && auto_add) {
+		sel_values.forEach( function(sel_value) {
+			var opt = new Option( sel_value, sel_value );
+			opt.selected = true;
+			menu.options[ menu.options.length ] = opt;
+		} ); // foreach selected value
+	} // yes add
+};
+
+function zeroPad(value, len) {
+	// Pad a number with zeroes to achieve a desired total length (max 10)
+	return ('0000000000' + value).slice(0 - len);
+};
 
 function dirname(path) {
 	// return path excluding file at end (same as POSIX function of same name)

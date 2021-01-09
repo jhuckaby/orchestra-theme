@@ -160,6 +160,7 @@ window.Page = class Page {
 			var item = opts[idx];
 			var item_name = '';
 			var item_value = '';
+			var attribs = {};
 			
 			if (isa_hash(item)) {
 				if (('label' in item) && ('data' in item)) {
@@ -170,6 +171,7 @@ window.Page = class Page {
 					item_name = item.title;
 					item_value = item.id;
 				}
+				if (item.icon) attribs['data-icon'] = item.icon;
 			}
 			else if (isa_array(item)) {
 				item_value = item[0];
@@ -178,7 +180,10 @@ window.Page = class Page {
 			else {
 				item_name = item_value = item;
 			}
-			html += '<option value="'+item_value+'" '+(find_in_array(values, item_value) ? 'selected="selected"' : '')+'>'+item_name+'</option>';
+			
+			attribs.value = item_value;
+			if (find_in_array(values, item_value)) attribs.selected = 'selected';
+			html += '<option ' + compose_attribs(attribs) + '>' + item_name + '</option>';
 		}
 		html += '</select>';
 		

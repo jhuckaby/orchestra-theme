@@ -18,7 +18,13 @@ var SingleSelect = {
 				$ms.append('<div class="select_chevron mdi mdi-unfold-more-horizontal"></div>');
 				
 				var opt = self.options[ self.selectedIndex ] || self.options[0] || { label: "(None)" };
-				$ms.append('<div class="single">' + (opt.label || opt.value) + '</div>');
+				var html = '<div class="single">';
+				if (opt.getAttribute && opt.getAttribute('data-icon')) {
+					html += '<i class="mdi mdi-' + opt.getAttribute('data-icon') + '">&nbsp;</i>';
+				}
+				html += (opt.label || opt.value);
+				html += '</div>';
+				$ms.append(html);
 			}; // redraw
 			
 			redraw();
@@ -39,6 +45,9 @@ var SingleSelect = {
 				for (var idx = 0, len = self.options.length; idx < len; idx++) {
 					var opt = self.options[idx];
 					html += '<div class="sel_dialog_item check ' + (opt.selected ? 'selected' : '') + '" data-value="' + opt.value + '">';
+					if (opt.getAttribute && opt.getAttribute('data-icon')) {
+						html += '<i class="mdi mdi-' + opt.getAttribute('data-icon') + '">&nbsp;</i>';
+					}
 					html += '<span>' + (opt.label || opt.value) + '</span>';
 					html += '<div class="sel_dialog_item_check"><i class="mdi mdi-check"></i></div>';
 					html += '</div>';
@@ -115,9 +124,12 @@ var MultiSelect = {
 				for (var idx = 0, len = self.options.length; idx < len; idx++) {
 					var opt = self.options[idx];
 					if (opt.selected) {
-						var $item = $('<div class="item"></div>').data('value', opt.value).html(
-							'<i class="mdi mdi-close">&nbsp;</i>' + opt.label
-						);
+						var html = '<i class="mdi mdi-close">&nbsp;</i>';
+						if (opt.getAttribute && opt.getAttribute('data-icon')) {
+							html += '<i class="mdi mdi-' + opt.getAttribute('data-icon') + '">&nbsp;</i>';
+						}
+						html += opt.label;
+						var $item = $('<div class="item"></div>').data('value', opt.value).html(html);
 						$ms.append( $item );
 						num_sel++;
 					}
@@ -126,7 +138,7 @@ var MultiSelect = {
 				if (num_sel) $ms.append( '<div class="clear"></div>' );
 				else $ms.append( '<div class="placeholder">' + ($this.attr('placeholder') || 'Click to select...') + '</div>' );
 				
-				$ms.find('div.item > i').on('mouseup', function(e) {
+				$ms.find('div.item > i.mdi-close').on('mouseup', function(e) {
 					// user clicked on the 'X' -- remove this item and redraw
 					var $item = $(this).parent();
 					var value = $item.data('value');
@@ -163,6 +175,9 @@ var MultiSelect = {
 				for (var idx = 0, len = self.options.length; idx < len; idx++) {
 					var opt = self.options[idx];
 					html += '<div class="sel_dialog_item check ' + (opt.selected ? 'selected' : '') + '" data-value="' + opt.value + '">';
+					if (opt.getAttribute && opt.getAttribute('data-icon')) {
+						html += '<i class="mdi mdi-' + opt.getAttribute('data-icon') + '">&nbsp;</i>';
+					}
 					html += '<span>' + (opt.label || opt.value) + '</span>';
 					html += '<div class="sel_dialog_item_check"><i class="mdi mdi-check"></i></div>';
 					html += '</div>';
@@ -171,7 +186,7 @@ var MultiSelect = {
 				
 				Popover.attach( $ms, '<div style="padding:15px;">' + html + '</div>', $this.data('shrinkwrap') || false );
 				
-				$('#d_sel_dialog_scrollarea > div.sel_dialog_item').on('mouseup', function() {
+				$('#d_sel_dialog_scrollarea > div.sel_dialog_item').on('mouseup', function(event) {
 					// select item, close dialog and update multi-select
 					var $item = $(this);
 					var value = $item.data('value');
@@ -181,11 +196,16 @@ var MultiSelect = {
 						var opt = self.options[idx];
 						if (opt.value == value) {
 							opt.selected = new_sel_state;
+							
+							// JH 2021-01-01 added this line:
+							if (new_sel_state) $item.addClass('selected'); else $item.removeClass('selected');
+							
 							idx = len;
 						}
 					}
 					
-					Popover.detach();
+					// JH 2021-01-01 added this if:
+					if (!$this.data('hold')) Popover.detach();
 					// redraw();
 					$this.trigger('change');
 				});
@@ -299,9 +319,14 @@ var TextSelect = {
 				Popover.attach( $ms, '<div style="padding:15px;">' + html + '</div>', $this.data('shrinkwrap') || false );
 				
 				var doAdd = function() {
+					app.clearError();
+					
 					var value = $('#fe_sel_dialog_text').val().replace(/[\"\']+/g, '');
 					if ($this.attr('trim')) value = value.trim();
 					if ($this.attr('lower')) value = value.toLowerCase();
+					if ($this.data('validate') && !value.match( new RegExp($this.data('validate')) )) {
+						return app.badField('#fe_sel_dialog_text');
+					}
 					
 					if (!value.length || find_object(self.options, { value: value })) {
 						Popover.detach();

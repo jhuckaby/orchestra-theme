@@ -219,95 +219,87 @@ var app = {
 	},
 	
 	api: {
-		request: function(url, args, callback, errorCallback) {
-			// send AJAX request to server using jQuery
-			var headers = {};
+		
+		request: function(url, opts, callback, errorCallback) {
+			// send HTTP GET to API endpoint
+			Debug.trace('api', "Sending API request: " + url );
+			opts.credentials = 'include';
 			
 			// inject session id into headers, unless app is using plain_text_post
 			if (app.getPref('session_id') && !app.plain_text_post) {
-				headers['X-Session-ID'] = app.getPref('session_id');
+				if (!opts.headers) opts.headers = {};
+				opts.headers['X-Session-ID'] = app.getPref('session_id');
 			}
 			
-			args.context = this;
-			args.url = url;
-			args.dataType = 'text'; // so we can parse the response json ourselves
-			args.timeout = 1000 * 10; // 10 seconds
-			args.headers = headers;
+			var timed_out = false;
+			var timer = setTimeout( function() {
+				timed_out = true;
+				timer = null;
+				var err = new Error("Timeout");
+				Debug.trace('api', "HTTP Error: " + err);
+				
+				if (errorCallback) errorCallback({ code: 'http', description: '' + (err.message || err) });
+				else app.doError( "HTTP Error: " + err.message || err );
+			}, 1000 * 10 );
 			
-			var retries = args.retries || 0;
-			delete args.retries;
-			
-			$.ajax(args).done( function(text) {
-				// parse JSON and fire callback
-				Debug.trace( 'api', "Received response from server: " + text );
-				var resp = null;
-				try { resp = JSON.parse(text); }
-				catch (e) {
-					// JSON parse error
-					var desc = "JSON Error: " + e.toString();
-					if (errorCallback) errorCallback({ code: 500, description: desc });
-					else app.doError(desc);
-				}
-				// success, but check json for server error code
-				if (resp) {
-					if (('code' in resp) && (resp.code != 0)) {
+			window.fetch( url, opts )
+				.then( function(res) {
+					if (timer) { clearTimeout(timer); timer = null; }
+					if (!res.ok) throw new Error("HTTP " + res.status + " " + res.statusText);
+					return res.json();
+				} )
+				.then(function(json) {
+					// got response
+					if (timed_out) return;
+					if (timer) { clearTimeout(timer); timer = null; }
+					var text = JSON.stringify(json);
+					if (text.length > 8192) text = "(" + text.length + " bytes)";
+					Debug.trace('api', "API Response: " + text );
+					
+					if (('code' in json) && (json.code != 0)) {
 						// an error occurred within the JSON response
 						// session errors are handled specially
-						if (resp.code == 'session') app.doUserLogout(true);
-						else if (errorCallback) errorCallback(resp);
-						else app.doError("Error: " + resp.description);
+						if (json.code == 'session') app.doUserLogout(true);
+						else if (errorCallback) errorCallback(json);
+						else app.doError("API Error: " + json.description);
 					}
-					else if (callback) callback(resp);
-				}
-			} )
-			.fail( function(xhr, status, err) {
-				// XHR or HTTP error
-				var code = xhr.status || 500;
-				var desc = err.toString() || status.toString();
-				switch (desc) {
-					case 'timeout': desc = "The request timed out.  Please try again."; break;
-					case 'error': desc = "An unknown network error occurred.  Please try again."; break;
-				}
-				Debug.trace( 'api', "Network Error: " + code + ": " + desc + " (retries: " + retries + ")" );
-				
-				// only retry 5xx errors (4xx are permanent)
-				if ((code >= 500) && (retries > 0)) {
-					retries--;
-					args.retries = retries;
-					setTimeout( function() { app.api.request(url, args, callback, errorCallback); }, 250 );
-					return;
-				}
-				
-				if (errorCallback) errorCallback({ code: code, description: desc });
-				else app.doError( "Network Error: " + code + ": " + desc );
-			} );
-		},
+					else if (callback) callback( json );
+				} )
+				.catch( function(err) {
+					// HTTP error
+					if (timed_out) return;
+					if (timer) { clearTimeout(timer); timer = null; }
+					Debug.trace('api', "HTTP Error: " + err);
+					
+					if (errorCallback) errorCallback({ code: 'http', description: '' + (err.message || err) });
+					else app.doError( err.message || err );
+				} );
+		}, // api.request
 		
-		post: function(cmd, params, callback, errorCallback) {
-			// send AJAX POST request to server using jQuery
+		post: function(cmd, data, callback, errorCallback) {
+			// send HTTP GET to API endpoint
 			var url = cmd;
 			if (!url.match(/^(\w+\:\/\/|\/)/)) url = app.base_api_url + "/" + cmd;
 			
-			if (!params) params = {};
-			
 			// inject session in into json if submitting as plain text (cors preflight workaround)
 			if (app.getPref('session_id') && app.plain_text_post) {
-				params['session_id'] = app.getPref('session_id');
+				data['session_id'] = app.getPref('session_id');
 			}
 			
-			var json_raw = JSON.stringify(params);
+			var json_raw = JSON.stringify(data);
 			Debug.trace( 'api', "Sending HTTP POST to: " + url + ": " + json_raw );
 			
-			this.request(url, {
-				type: "POST",
-				data: json_raw,
-				contentType: app.plain_text_post ? 'text/plain' : 'application/json',
-				retries: 5
-			}, callback, errorCallback);
-		},
+			app.api.request( url, {
+				method: "POST",
+				headers: {
+					"Content-Type": app.plain_text_post ? 'text/plain' : 'application/json',
+				},
+				body: json_raw
+			}, callback, errorCallback );
+		}, // api.post
 		
 		get: function(cmd, query, callback, errorCallback) {
-			// send AJAX GET request to server using jQuery
+			// send HTTP GET to API endpoint
 			var url = cmd;
 			if (!url.match(/^(\w+\:\/\/|\/)/)) url = app.base_api_url + "/" + cmd;
 			
@@ -316,12 +308,9 @@ var app = {
 			url += compose_query_string(query);
 			
 			Debug.trace( 'api', "Sending HTTP GET to: " + url );
-			
-			this.request(url, {
-				type: "GET",
-				retries: 5
-			}, callback, errorCallback);
-		}
+			app.api.request( url, {}, callback, errorCallback );
+		} // api.get
+		
 	}, // api
 	
 	initPrefs: function(key) {

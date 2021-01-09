@@ -1,4 +1,4 @@
-// Misc 3rd party utilities for Mendo.org
+// Misc 3rd party utilities for Orchestra
 
 // ----------------------------------------------
 // https://github.com/teamdf/jquery-visible
