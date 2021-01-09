@@ -1,5 +1,4 @@
 // Misc 3rd party utilities for Orchestra
-// Test 2021/01/09 001
 
 // ----------------------------------------------
 // https://github.com/teamdf/jquery-visible
