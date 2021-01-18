@@ -256,14 +256,17 @@ var app = {
 					if (text.length > 8192) text = "(" + text.length + " bytes)";
 					Debug.trace('api', "API Response: " + text );
 					
-					if (('code' in json) && (json.code != 0)) {
-						// an error occurred within the JSON response
-						// session errors are handled specially
-						if (json.code == 'session') app.doUserLogout(true);
-						else if (errorCallback) errorCallback(json);
-						else app.doError("API Error: " + json.description);
-					}
-					else if (callback) callback( json );
+					// use setTimeout to avoid insanity with the stupid fetch promise
+					setTimeout( function() {
+						if (('code' in json) && (json.code != 0)) {
+							// an error occurred within the JSON response
+							// session errors are handled specially
+							if (json.code == 'session') app.doUserLogout(true);
+							else if (errorCallback) errorCallback(json);
+							else app.doError("API Error: " + json.description);
+						}
+						else if (callback) callback( json );
+					}, 1 );
 				} )
 				.catch( function(err) {
 					// HTTP error
