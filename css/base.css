@@ -1072,6 +1072,14 @@ body.dark .multiselect > .item {
 	-webkit-user-select: none;
 }
 
+.multiselect.disabled > div {
+	color: var(--icon-color);
+	cursor: not-allowed;
+}
+.multiselect.disabled:hover {
+	border: 1px solid var(--border-color);
+}
+
 .form_suffix_icon {
 	position: relative;
 	left: -15px;

@@ -35,6 +35,7 @@ var SingleSelect = {
 			$ms.on('mouseup', function() {
 				// create popover dialog for selecting and filtering
 				var html = '';
+				if ($ms.hasClass('disabled')) return;
 				
 				html += '<div class="sel_dialog_label">' + ($this.attr('title') || 'Select Item') + '</div>';
 				html += '<div class="sel_dialog_search_container">';
@@ -165,6 +166,7 @@ var MultiSelect = {
 			$ms.on('mouseup', function() {
 				// create popover dialog for selecting and filtering
 				var html = '';
+				if ($ms.hasClass('disabled')) return;
 				
 				html += '<div class="sel_dialog_label">' + ($this.attr('title') || 'Select Items') + '</div>';
 				html += '<div class="sel_dialog_search_container">';
@@ -300,6 +302,7 @@ var TextSelect = {
 			$ms.on('mouseup', function() {
 				// create popover dialog for adding new items
 				var html = '';
+				if ($ms.hasClass('disabled')) return;
 				
 				html += '<div class="sel_dialog_label">' + ($this.attr('title') || 'Add New Item') + '</div>';
 				html += '<div class="sel_dialog_search_container">';
