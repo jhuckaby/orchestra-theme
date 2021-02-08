@@ -16,38 +16,40 @@ var Popover = {
 		
 		$('body').append( $box );
 		
-		var width = $box.width();
-		var height = $box.height();
-		
-		if (height < rect.top) {
-			$box.css('top', '' + Math.floor( rect.top - height - 16 ) + 'px');
-			$box.addClass('bottom');
-		}
-		else {
-			$box.css('top', '' + Math.floor( rect.bottom + 16 ) + 'px');
-			$box.addClass('top');
-		}
-		
-		if (shrinkwrap) {
-			$box.css('left', '' + Math.floor( (rect.left + (rect.width / 2)) - (width / 2) ) + 'px');
-		}
-		else $box.css('left', '' + Math.floor( rect.left ) + 'px');
-		
 		this.$box = $box;
 		this.rect = rect;
 		this.enabled = true;
 		
-		if ($('#popoverlay').length) {
-			$('#popoverlay').stop().remove();
-		}
-		
-		var $overlay = $('<div id="popoverlay"></div>').css('opacity', 0);
-		$('body').append($overlay);
-		$overlay.fadeTo( 500, 0.5 ).click(function() {
-			Popover.detach();
-		});
-		
-		unscroll();
+		setTimeout( function() {
+			var width = $box.width();
+			var height = $box.height();
+			
+			if (height + 10 < rect.top) {
+				$box.css('top', '' + Math.floor( rect.top - height - 16 ) + 'px');
+				$box.addClass('bottom');
+			}
+			else {
+				$box.css('top', '' + Math.floor( rect.bottom + 16 ) + 'px');
+				$box.addClass('top');
+			}
+			
+			if (shrinkwrap) {
+				$box.css('left', '' + Math.floor( (rect.left + (rect.width / 2)) - (width / 2) ) + 'px');
+			}
+			else $box.css('left', '' + Math.floor( rect.left ) + 'px');
+			
+			if ($('#popoverlay').length) {
+				$('#popoverlay').stop().remove();
+			}
+			
+			var $overlay = $('<div id="popoverlay"></div>').css('opacity', 0);
+			$('body').append($overlay);
+			$overlay.fadeTo( 500, 0.5 ).click(function() {
+				Popover.detach();
+			});
+			
+			unscroll();
+		}, 1 );
 	},
 	
 	detach: function() {
