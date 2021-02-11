@@ -238,7 +238,7 @@ window.Page = class Page {
 	getFormDate(args) {
 		// render custom date field for form
 		// coerce value into epoch
-		if (!args.value) args.value = time_now();
+		if (!args.value) args.value = 0;
 		else if (!args.value.toString().match(/^\d+$/)) {
 			args.value = get_date_args(args.value).epoch;
 		}

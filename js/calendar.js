@@ -16,8 +16,14 @@ var Calendar = {
 			});
 			
 			$this.on('change', function() {
-				var fmt = format_date( parseInt(this.value), '[dddd], [mmmm] [mday], [yyyy]' );
-				$anchor.html( '<i class="mdi mdi-calendar">&nbsp;</i>' + fmt );
+				var epoch = parseInt(this.value);
+				if (epoch) {
+					var fmt = format_date( epoch, '[dddd], [mmmm] [mday], [yyyy]' );
+					$anchor.html( '<i class="mdi mdi-calendar">&nbsp;</i>' + fmt );
+				}
+				else {
+					$anchor.html( '(None)' );
+				}
 			});
 			
 			$this.trigger('change');
@@ -27,6 +33,7 @@ var Calendar = {
 	popup: function(anchor, date, callback) {
 		var self = this;
 		var html = '';
+		if (!date) date = time_now();
 		
 		this.$anchor = $(anchor);
 		this.callback = callback;
