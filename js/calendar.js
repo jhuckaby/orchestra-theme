@@ -18,7 +18,7 @@ var Calendar = {
 			$this.on('change', function() {
 				var epoch = parseInt(this.value);
 				if (epoch) {
-					var fmt = format_date( epoch, '[dddd], [mmmm] [mday], [yyyy]' );
+					var fmt = format_date( epoch, app.user.date_format );
 					$anchor.html( '<i class="mdi mdi-calendar">&nbsp;</i>' + fmt );
 				}
 				else {
