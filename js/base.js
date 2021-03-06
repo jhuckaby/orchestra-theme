@@ -154,7 +154,7 @@ var app = {
 		}
 	},
 	
-	handleUnload: function() {
+	handleUnload: function(e) {
 		// called just before user navs off
 		if (this.page_manager && this.page_manager.current_page_id && $P && $P() && $P().onBeforeUnload) {
 			var result = $P().onBeforeUnload();
@@ -533,5 +533,5 @@ window.addEventListener( "resize", function() {
 }, false );
 
 window.addEventListener("beforeunload", function (e) {
-	return app.handleUnload();
+	return app.handleUnload(e);
 }, false );
