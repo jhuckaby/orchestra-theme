@@ -2,6 +2,8 @@
 
 var SingleSelect = {
 	
+	maxMenuItems: 2000,
+	
 	init: function(sel) {
 		// initialize all single-selects based on selector
 		$(sel).each( function() {
@@ -45,7 +47,7 @@ var SingleSelect = {
 				html += '<div id="d_sel_dialog_scrollarea" class="sel_dialog_scrollarea">';
 				for (var idx = 0, len = self.options.length; idx < len; idx++) {
 					var opt = self.options[idx];
-					html += '<div class="sel_dialog_item check ' + (opt.selected ? 'selected' : '') + '" data-value="' + opt.value + '">';
+					html += '<div class="sel_dialog_item check ' + (opt.selected ? 'selected' : '') + '" ' + ((idx >= SingleSelect.maxMenuItems) ? 'style="display:none"' : '') + ' data-value="' + opt.value + '">';
 					if (opt.getAttribute && opt.getAttribute('data-icon')) {
 						html += '<i class="mdi mdi-' + opt.getAttribute('data-icon') + '">&nbsp;</i>';
 					}
@@ -53,6 +55,13 @@ var SingleSelect = {
 					html += '<div class="sel_dialog_item_check"><i class="mdi mdi-check"></i></div>';
 					html += '</div>';
 				}
+				
+				html += '<div id="d_sel_dialog_more">';
+				if (self.options.length > SingleSelect.maxMenuItems) {
+					html += '(' + commify(self.options.length - SingleSelect.maxMenuItems) + ' more items not shown)';
+				}
+				html += '</div>';
+				
 				html += '</div>';
 				
 				Popover.attach( $ms, '<div style="padding:15px;">' + html + '</div>', $this.data('shrinkwrap') || false );
@@ -74,16 +83,27 @@ var SingleSelect = {
 				$input.on('keyup', function(event) {
 					// refresh list on every keypress
 					var value = $input.val().toLowerCase();
+					var num_matched = 0;
+					
 					$('#d_sel_dialog_scrollarea > div.sel_dialog_item').each( function() {
 						var $item = $(this);
 						var text = $item.find('> span').html().toLowerCase();
+						
 						if (!value.length || (text.indexOf(value) > -1)) {
-							$item.addClass('match').show();
+							if (num_matched < SingleSelect.maxMenuItems) $item.addClass('match').show();
+							else $item.removeClass('match').hide();
+							num_matched++;
 						}
 						else {
 							$item.removeClass('match').hide();
 						}
-					} );
+					} ); // each
+					
+					if (num_matched > SingleSelect.maxMenuItems) {
+						$('#d_sel_dialog_more').html( '(' + commify(num_matched - SingleSelect.maxMenuItems) + ' more items not shown)' );
+					}
+					else $('#d_sel_dialog_more').html('');
+					
 					Popover.reposition();
 				});
 				$input.on('keydown', function(event) {
@@ -207,7 +227,7 @@ var MultiSelect = {
 					}
 					
 					// JH 2021-01-01 added this if:
-					if (!$this.data('hold')) Popover.detach();
+					if (!$this.data('hold') || (self.options.length == 1) || event.altKey) Popover.detach();
 					// redraw();
 					$this.trigger('change');
 				});
@@ -236,7 +256,10 @@ var MultiSelect = {
 					var value = $input.val().toLowerCase();
 					if ((event.keyCode == 13) && value.length) {
 						event.preventDefault();
-						$('#d_sel_dialog_scrollarea > div.sel_dialog_item.match').slice(0, 1).trigger('mouseup');
+						
+						var mup = jQuery.Event( "mouseup" );
+						mup.altKey = true; // bypass `hold` feature
+						$('#d_sel_dialog_scrollarea > div.sel_dialog_item.match').slice(0, 1).trigger(mup);
 					}
 				});
 				
