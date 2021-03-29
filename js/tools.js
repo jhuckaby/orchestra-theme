@@ -551,7 +551,7 @@ function get_int_version(str, pad) {
 		while (part.length < pad) part = '0' + part;
 		output += part;
 	}
-	return parseInt( output.replace(/^0+/, ''), 10 );
+	return parseInt( output.replace(/^0+/, '') || "0", 10 );
 };
 
 function get_unique_id(len) {
