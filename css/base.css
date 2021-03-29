@@ -1306,6 +1306,7 @@ body.dark #dialog, body.dark .dialog {
 	max-width: 450px; 
 	padding: 10px 0 20px 0;
 	font-size: 13px; 
+	line-height: 18px;
 	color: var(--body-text-color);
 }
 
