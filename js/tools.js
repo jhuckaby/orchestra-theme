@@ -86,22 +86,8 @@ function ucfirst(text) {
 }
 
 function commify(number) {
-	// add commas to integer, like 1,234,567
-	if (!number) number = 0;
-
-	number = '' + number;
-	if (number.length > 3) {
-		var mod = number.length % 3;
-		var output = (mod > 0 ? (number.substring(0,mod)) : '');
-		for (i=0 ; i < Math.floor(number.length / 3); i++) {
-			if ((mod == 0) && (i == 0))
-				output += number.substring(mod+ 3 * i, mod + 3 * i + 3);
-			else
-				output+= ',' + number.substring(mod + 3 * i, mod + 3 * i + 3);
-		}
-		return (output);
-	}
-	else return number;
+	// add localized commas to integer, e.g. 1,234,567 for US
+	return (new Intl.NumberFormat()).format(number || 0);
 }
 
 function short_float(value, places) {
@@ -329,6 +315,13 @@ function render_menu_options(items, sel_value, auto_add) {
 		var attribs = {};
 		
 		if (isa_hash(item)) {
+			if (('label' in item) && ('items' in item)) {
+				// optgroup, recurse for items within
+				html += '<optgroup label="' + item.label + '">';
+				html += render_menu_options( item.items, sel_value, false );
+				html += '</optgroup>';
+				continue;
+			}
 			if (('label' in item) && ('data' in item)) {
 				item_name = item.label;
 				item_value = item.data;
@@ -338,6 +331,8 @@ function render_menu_options(items, sel_value, auto_add) {
 				item_value = item.id;
 			}
 			if (item.icon) attribs['data-icon'] = item.icon;
+			if (item.class) attribs['data-class'] = item.class;
+			if (item.group) attribs['data-group'] = item.group;
 		}
 		else if (isa_array(item)) {
 			item_value = item[0];
@@ -399,6 +394,7 @@ function populate_menu(menu, items, sel_values, auto_add) {
 		menu.options[ menu.options.length ] = opt;
 		
 		if (isa_hash(item) && item.icon && opt.setAttribute) opt.setAttribute('data-icon', item.icon);
+		if (isa_hash(item) && item.class && opt.setAttribute) opt.setAttribute('data-class', item.class);
 	}); // foreach item
 	
 	if (sel_values.length && auto_add) {
@@ -447,9 +443,10 @@ function compose_attribs(attribs) {
 	if (attribs) {
 		for (var key in attribs) {
 			value = attribs[key];
-			if (typeof(value) == 'undefined') value = '';
-			else if (value === null) value = '';
-			html += " " + key + "=\"" + encode_attrib_entities(''+value) + "\"";
+			if (typeof(value) != 'undefined') {
+				if (value === null) value = '';
+				html += " " + key + "=\"" + encode_attrib_entities(''+value) + "\"";
+			}
 		}
 	}
 
@@ -652,6 +649,8 @@ function find_objects_idx(arr, crit, max) {
 	var num_crit = 0;
 	for (var a in crit) num_crit++;
 	
+	if (isa_hash(arr)) arr = hash_values_to_array(arr);
+	
 	for (var idx = 0, len = arr.length; idx < len; idx++) {
 		var matches = 0;
 		for (var key in crit) {
@@ -668,24 +667,36 @@ function find_objects_idx(arr, crit, max) {
 
 function find_object_idx(arr, crit) {
 	// find idx of first matched object, or -1 if not found
+	if (isa_hash(arr)) arr = hash_values_to_array(arr);
 	var idxs = find_objects_idx(arr, crit, 1);
 	return idxs.length ? idxs[0] : -1;
 };
 
 function find_object(arr, crit) {
 	// return first found object matching crit keys/values, or null if not found
+	if (isa_hash(arr)) arr = hash_values_to_array(arr);
 	var idx = find_object_idx(arr, crit);
 	return (idx > -1) ? arr[idx] : null;
 };
 
 function find_objects(arr, crit) {
 	// find and return all objects that match crit keys/values
+	if (isa_hash(arr)) arr = hash_values_to_array(arr);
 	var idxs = find_objects_idx(arr, crit);
 	var objs = [];
 	for (var idx = 0, len = idxs.length; idx < len; idx++) {
 		objs.push( arr[idxs[idx]] );
 	}
 	return objs;
+};
+
+function delete_object(arr, crit) {
+	var idx = find_object_idx(arr, crit);
+	if (idx > -1) {
+		arr.splice( idx, 1 );
+		return true;
+	}
+	return false;
 };
 
 function always_array(obj, key) {
@@ -722,20 +733,26 @@ function hash_values_to_array(hash) {
 	return arr;
 };
 
+function obj_array_to_hash(arr, key) {
+	// convert array of objects to hash, keyed by specific key
+	var hash = {};
+	for (var idx = 0, len = arr.length; idx < len; idx++) {
+		var item = arr[idx];
+		if (key in item) hash[ item[key] ] = item;
+	}
+	return hash;
+}
+
 function merge_objects(a, b) {
 	// merge keys from a and b into c and return c
 	// b has precedence over a
 	if (!a) a = {};
 	if (!b) b = {};
 	var c = {};
-
-	// also handle serialized objects for a and b
-	if (typeof(a) != 'object') eval( "a = " + a );
-	if (typeof(b) != 'object') eval( "b = " + b );
-
+	
 	for (var key in a) c[key] = a[key];
 	for (var key in b) c[key] = b[key];
-
+	
 	return c;
 };
 
@@ -818,6 +835,58 @@ function short_float_str(num) {
 	return num;
 };
 
+function toTitleCase(str) {
+	return str.toLowerCase().replace(/\b\w/g, function (txt) { return txt.toUpperCase(); });
+};
+
+function sort_by(orig, key, opts) {
+	// sort array of objects by key, asc or desc, and optionally return NEW array
+	// opts: { dir, type, copy }
+	if (!opts) opts = {};
+	if (!opts.dir) opts.dir = 1;
+	if (!opts.type) opts.type = 'string';
+	
+	var arr = opts.copy ? Array.from(orig) : orig;
+	
+	arr.sort( function(a, b) {
+		switch(opts.type) {
+			case 'string':
+				return( (''+a[key]).localeCompare(b[key]) * opts.dir );
+			break;
+			
+			case 'number':
+				return (a[key] - b[key]) * opts.dir;
+			break;
+		}
+	} );
+	
+	return arr;
+};
+
+function stableSerialize(node) {
+	// deep-serialize JSON with sorted keys, for comparison purposes
+	if (node === null) return 'null';
+	if (isa_hash(node)) {
+		var json = '{';
+		Object.keys(node).sort().forEach( function(key, idx) {
+			if (idx) json += ',';
+			json += JSON.stringify(key) + ":" + stableSerialize(node[key]);
+		} );
+		json += '}';
+		return json;
+	}
+	else if (isa_array(node)) {
+		var json = '[';
+		node.forEach( function(item, idx) {
+			if (idx) json += ',';
+			json += stableSerialize(item);
+		} );
+		json += ']';
+		return json;
+	}
+	else return JSON.stringify(node);
+};
+
 // Debounce Function Generator
 // Fires once immediately, then never again until freq ms
 function debounce(func, freq) {
@@ -886,3 +955,39 @@ function captureTabs(input, event) {
 		return false;
 	}
 };
+
+// Relative Bytes Component
+// create via getFormRelativeBytes()
+
+var RelativeBytes = {
+	
+	mults: {
+		b: 1,
+		kb: 1024,
+		mb: 1048576,
+		gb: 1073741824,
+		tb: 1099511627776
+	},
+	
+	init: function(sel) {
+		// initialize all based on selector
+		var self = this;
+		
+		$(sel).each( function() {
+			var $this = $(this);
+			var $text = $this.next().find("input");
+			var $menu = $this.next().find("select");
+			var $both = $this.next().find("input, select");
+			
+			$both.on('change', function() {
+				var adj_value = parseInt( $text.val() );
+				if (isNaN(adj_value) || (adj_value < 0)) return;
+				var unit = $menu.val();
+				var mult = self.mults[ unit ];
+				var value = adj_value * mult;
+				$this.val( value );
+			});
+		});
+	}
+	
+}; // RelativeBytes

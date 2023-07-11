@@ -204,3 +204,39 @@ function check_valid_date(str) {
 	catch (e) { epoch = 0; }
 	return (epoch >= 86400);
 };
+
+// Relative Time Component
+// create via getFormRelativeTime()
+
+var RelativeTime = {
+	
+	mults: {
+		seconds: 1,
+		minutes: 60,
+		hours: 3600,
+		days: 86400
+	},
+	
+	init: function(sel) {
+		// initialize all based on selector
+		var self = this;
+		
+		$(sel).each( function() {
+			var $this = $(this);
+			var $text = $this.next().find("input");
+			var $menu = $this.next().find("select");
+			var $both = $this.next().find("input, select");
+			
+			$both.on('change', function() {
+				var adj_value = parseInt( $text.val() );
+				if (isNaN(adj_value) || (adj_value < 0)) return;
+				var unit = $menu.val();
+				var mult = self.mults[ unit ];
+				var value = adj_value * mult;
+				$this.val( value );
+			});
+		});
+	}
+	
+}; // RelativeTime
+

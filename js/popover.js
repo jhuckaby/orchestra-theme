@@ -48,7 +48,7 @@ var Popover = {
 				Popover.detach();
 			});
 			
-			unscroll();
+			if (!Dialog.active) unscroll();
 		}, 1 );
 	},
 	
@@ -57,7 +57,7 @@ var Popover = {
 			this.$box.remove();
 			this.enabled = false;
 			$('#popoverlay').stop().fadeOut( 300, function() { $(this).remove(); } );
-			unscroll.reset();
+			if (!Dialog.active) unscroll.reset();
 			
 			if (this.onDetach) {
 				// one time hook for detach

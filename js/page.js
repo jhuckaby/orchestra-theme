@@ -99,7 +99,7 @@ window.Page = class Page {
 	getFormCheckbox(args) {
 		// render checkbox for form
 		var html = '';
-		var label = args.label;
+		var label = args.label || '';
 		delete args.label;
 		
 		if (args.auto) {
@@ -127,9 +127,15 @@ window.Page = class Page {
 	getFormMenu(args) {
 		// render menu for form
 		var html = '';
-		html += '<div class="select_chevron mdi mdi-unfold-more-horizontal" style="top:2px;"></div>';
+		html += '<div class="select_chevron mdi mdi-chevron-down" style="top:2px;"></div>';
 		
 		var opts = args.options;
+		if (isa_hash(args.options)) {
+			// convert hash to array
+			opts = Object.keys(args.options).map( function(key) {
+				return { id: key, title: args.options[key] };
+			} );
+		}
 		delete args.options;
 		
 		var value = args.value || '';
@@ -148,12 +154,23 @@ window.Page = class Page {
 	getFormMenuMulti(args) {
 		// render multi-select menu for form
 		var html = '';
+		var opt_values = [];
 		
-		var opts = args.options;
+		var opts = deep_copy_object(args.options);
 		delete args.options;
 		
 		var values = args.values || [];
 		delete args.values;
+		
+		var auto_add = args.auto_add || false;
+		delete args.auto_add;
+		
+		if (args.default_icon) {
+			opts.forEach( function(item) {
+				if (!item.icon) item.icon = args.default_icon;
+			} );
+			delete args.default_icon;
+		}
 		
 		html += '<select multiple ' + compose_attribs(args) + '>';
 		for (var idx = 0, len = opts.length; idx < len; idx++) {
@@ -172,6 +189,9 @@ window.Page = class Page {
 					item_value = item.id;
 				}
 				if (item.icon) attribs['data-icon'] = item.icon;
+				if (item.abbrev) attribs['data-abbrev'] = item.abbrev;
+				if (item.class) attribs['data-class'] = item.class;
+				if (item.group) attribs['data-group'] = item.group;
 			}
 			else if (isa_array(item)) {
 				item_value = item[0];
@@ -184,9 +204,18 @@ window.Page = class Page {
 			attribs.value = item_value;
 			if (find_in_array(values, item_value)) attribs.selected = 'selected';
 			html += '<option ' + compose_attribs(attribs) + '>' + item_name + '</option>';
-		}
-		html += '</select>';
+			opt_values.push( item_value );
+		} // foreach opt
 		
+		if (auto_add) {
+			values.forEach( function(value) {
+				if (!find_in_array(opt_values, value)) {
+					html += '<option value="' + encode_attrib_entities(value) + '" selected="selected">' + value + '</option>';
+				}
+			} );
+		} // auto-add
+		
+		html += '</select>';
 		return html;
 	}
 	
@@ -194,7 +223,7 @@ window.Page = class Page {
 		// render single-select menu for form
 		var html = '';
 		
-		var opts = args.options;
+		var opts = deep_copy_object(args.options);
 		delete args.options;
 		
 		var value = args.value || '';
@@ -202,6 +231,13 @@ window.Page = class Page {
 		
 		var auto_add = args.auto_add || false;
 		delete args.auto_add;
+		
+		if (args.default_icon) {
+			opts.forEach( function(item) {
+				if (!item.icon) item.icon = args.default_icon;
+			} );
+			delete args.default_icon;
+		}
 		
 		html += '<select ' + compose_attribs(args) + '>';
 		html += render_menu_options( opts, value, auto_add );
@@ -244,6 +280,89 @@ window.Page = class Page {
 		}
 		if (!args.type) args.type = 'hidden';
 		return '<input ' + compose_attribs(args) + '/><div class="form_date"></div>';
+	}
+	
+	getFormRelativeTime(args) {
+		// render custom relative sec/min/hour/day/week/month/year selector
+		// value is always seconds, everything else is just UI sugar
+		if (!args.value) args.value = 0;
+		var adj_value = args.value;
+		var unit = 'seconds';
+		var html = '';
+		
+		var units = [
+			{ id: 'seconds', title: 'Seconds', mult: 1     },
+			{ id: 'minutes', title: 'Minutes', mult: 60    },
+			{ id: 'hours',   title: 'Hours',   mult: 3600  },
+			{ id: 'days',    title: 'Days',    mult: 86400 }
+		];
+		
+		if (adj_value && ((adj_value % 86400) == 0)) {
+			adj_value = adj_value /= 86400;
+			unit = 'days';
+		}
+		else if (adj_value && ((adj_value % 3600) == 0)) {
+			adj_value = adj_value /= 3600;
+			unit = 'hours';
+		}
+		else if (adj_value && ((adj_value % 60) == 0)) {
+			adj_value = adj_value /= 60;
+			unit = 'minutes';
+		}
+		
+		if (!args.type) args.type = 'hidden';
+		html += '<input ' + compose_attribs(args) + '/>';
+		
+		html += '<div class="form_row_duo">';
+			html += '<div>' + this.getFormText({ id: args.id + '_val', type: 'number', value: adj_value }) + '</div>';
+			html += '<div>' + this.getFormMenu({ id: args.id + '_mul', options: units, value: unit }) + '</div>';
+		html += '</div>';
+		
+		return html;
+	}
+	
+	getFormRelativeBytes(args) {
+		// render custom relative bytes/kb/mb/gb/tb selector
+		// value is always bytes, everything else is just UI sugar
+		if (!args.value) args.value = 0;
+		var adj_value = args.value;
+		var unit = 'b';
+		var html = '';
+		
+		var units = [
+			{ id: 'b',  title: 'Bytes',     mult: 1 },
+			{ id: 'kb', title: 'Kilobytes', mult: 1024 },
+			{ id: 'mb', title: 'Megabytes', mult: 1048576 },
+			{ id: 'gb', title: 'Gigabytes', mult: 1073741824 },
+			{ id: 'tb', title: 'Terabytes', mult: 1099511627776 }
+		];
+		
+		if (adj_value && ((adj_value % 1099511627776) == 0)) {
+			adj_value = adj_value /= 1099511627776;
+			unit = 'tb';
+		}
+		else if (adj_value && ((adj_value % 1073741824) == 0)) {
+			adj_value = adj_value /= 1073741824;
+			unit = 'gb';
+		}
+		else if (adj_value && ((adj_value % 1048576) == 0)) {
+			adj_value = adj_value /= 1048576;
+			unit = 'mb';
+		}
+		else if (adj_value && ((adj_value % 1024) == 0)) {
+			adj_value = adj_value /= 1024;
+			unit = 'kb';
+		}
+		
+		if (!args.type) args.type = 'hidden';
+		html += '<input ' + compose_attribs(args) + '/>';
+		
+		html += '<div class="form_row_duo">';
+			html += '<div>' + this.getFormText({ id: args.id + '_val', type: 'number', value: adj_value }) + '</div>';
+			html += '<div>' + this.getFormMenu({ id: args.id + '_mul', options: units, value: unit }) + '</div>';
+		html += '</div>';
+		
+		return html;
 	}
 	
 	getPaginatedTable() {
@@ -401,6 +520,172 @@ window.Page = class Page {
 		return html;
 	}
 	
+	getPaginatedGrid() {
+		// get html for paginated grid
+		// multi-calling convention: (resp, cols, data_type, callback), or (args, callback), or (args)
+		var args = null;
+		if (arguments.length == 1) {
+			// custom args calling convention
+			args = arguments[0];
+			
+			// V2 API
+			if (!args.resp && args.rows && args.total) {
+				args.resp = {
+					rows: args.rows,
+					list: { length: args.total }
+				};
+			}
+		}
+		else if (arguments.length == 2) {
+			// combo args + callback
+			args = arguments[0];
+			args.callback = arguments[1];
+		}
+		else {
+			// classic calling convention
+			args = {
+				resp: arguments[0],
+				cols: arguments[1],
+				data_type: arguments[2],
+				callback: arguments[3],
+				limit: this.args.limit,
+				offset: this.args.offset || 0
+			};
+		}
+		
+		var resp = args.resp;
+		var rows = resp.rows;
+		var cols = args.cols;
+		var data_type = args.data_type;
+		var callback = args.callback;
+		var cpl = args.pagination_link || '';
+		var html = '';
+		
+		// pagination header
+		html += '<div class="data_grid_pagination">';
+		
+		var results = {
+			limit: args.limit,
+			offset: args.offset || 0,
+			total: resp.list.length
+		};
+		
+		var num_pages = Math.floor( results.total / results.limit ) + 1;
+		if (results.total % results.limit == 0) num_pages--;
+		var current_page = Math.floor( results.offset / results.limit ) + 1;
+		
+		html += '<div style="text-align:left">';
+		html += commify(results.total) + ' ' + pluralize(data_type, results.total) + ' found';
+		html += '</div>';
+		
+		html += '<div style="text-align:center">';
+		if (num_pages > 1) html += 'Page ' + commify(current_page) + ' of ' + commify(num_pages);
+		else html += '&nbsp;';
+		html += '</div>';
+		
+		html += '<div style="text-align:right">';
+		
+		if (num_pages > 1) {
+			// html += 'Page: ';
+			if (current_page > 1) {
+				if (cpl) {
+					html += '<span class="link" onMouseUp="'+cpl+'('+Math.floor((current_page - 2) * results.limit)+')">&laquo; Prev</span>';
+				}
+				else {
+					html += '<a href="#' + this.ID + compose_query_string(merge_objects(this.args, {
+						offset: (current_page - 2) * results.limit
+					})) + '">&laquo; Prev</a>';
+				}
+			}
+			html += '&nbsp;&nbsp;&nbsp;';
+			
+			var start_page = current_page - 4;
+			var end_page = current_page + 5;
+			
+			if (start_page < 1) {
+				end_page += (1 - start_page);
+				start_page = 1;
+			}
+			
+			if (end_page > num_pages) {
+				start_page -= (end_page - num_pages);
+				if (start_page < 1) start_page = 1;
+				end_page = num_pages;
+			}
+			
+			for (var idx = start_page; idx <= end_page; idx++) {
+				if (idx == current_page) {
+					html += '<b>' + commify(idx) + '</b>';
+				}
+				else {
+					if (cpl) {
+						html += '<span class="link" onMouseUp="'+cpl+'('+Math.floor((idx - 1) * results.limit)+')">' + commify(idx) + '</span>';
+					}
+					else {
+						html += '<a href="#' + this.ID + compose_query_string(merge_objects(this.args, {
+							offset: (idx - 1) * results.limit
+						})) + '">' + commify(idx) + '</a>';
+					}
+				}
+				html += '&nbsp;';
+			}
+			
+			html += '&nbsp;&nbsp;';
+			if (current_page < num_pages) {
+				if (cpl) {
+					html += '<span class="link" onMouseUp="'+cpl+'('+Math.floor((current_page + 0) * results.limit)+')">Next &raquo;</span>';
+				}
+				else {
+					html += '<a href="#' + this.ID + compose_query_string(merge_objects(this.args, {
+						offset: (current_page + 0) * results.limit
+					})) + '">Next &raquo;</a>';
+				}
+			}
+		} // more than one page
+		else {
+			html += 'Page 1 of 1';
+		}
+		html += '</div>'; // right 3rd
+		html += '</div>'; // pagination
+		
+		html += '<div style="margin-top:5px;">';
+		
+		var tattrs = args.attribs || {};
+		if (args.class) tattrs.class = args.class;
+		if (!tattrs.class) {
+			tattrs.class = 'data_grid';
+			if (data_type.match(/^\w+$/)) tattrs.class += ' ' + data_type + '_grid';
+		}
+		if (!tattrs.style) tattrs.style = '';
+		tattrs.style += 'grid-template-columns: repeat(' + cols.length + ', auto);';
+		html += '<div ' + compose_attribs(tattrs) + '>';
+		
+		html += '<ul class="grid_row_header"><div>' + cols.join('</div><div>') + '</div></ul>';
+		
+		for (var idx = 0, len = rows.length; idx < len; idx++) {
+			var row = rows[idx];
+			var tds = callback(row, idx);
+			if (tds.insertAbove) html += tds.insertAbove;
+			html += '<ul class="grid_row ' + (tds.className || '') + '"' + (row.id ? (' data-id="'+row.id+'"') : '') + '>';
+			html += '<div>' + tds.join('</div><div>') + '</div>';
+			html += '</ul>';
+		} // foreach row
+		
+		if (!rows.length) {
+			html += '<ul class="grid_row_empty"><div style="grid-column-start: span ' + cols.length + ';">';
+			if (args.empty_msg) html += args.empty_msg;
+			else html += 'No '+pluralize(data_type)+' found.';
+			html += '</div></ul>';
+		}
+		
+		if (args.below) html += args.below;
+		
+		html += '</div>'; // scroll wrapper
+		html += '</div>'; // grid
+		
+		return html;
+	}
+	
 	getBasicTable() {
 		// get html for sorted table (fake pagination, for looks only)
 		var html = '';
@@ -426,24 +711,26 @@ window.Page = class Page {
 		var callback = args.callback;
 		
 		// pagination
-		html += '<div class="pagination">';
-		html += '<table cellspacing="0" cellpadding="0" border="0" width="100%"><tr>';
-		
-		html += '<td align="left" width="33%">';
-		if (cols.headerLeft) html += cols.headerLeft;
-		else html += commify(rows.length) + ' ' + pluralize(data_type, rows.length) + '';
-		html += '</td>';
-		
-		html += '<td align="center" width="34%">';
-			html += cols.headerCenter || '&nbsp;';
-		html += '</td>';
-		
-		html += '<td align="right" width="33%">';
-			html += cols.headerRight || 'Page 1 of 1';
-		html += '</td>';
-		
-		html += '</tr></table>';
-		html += '</div>';
+		if (!args.compact) {
+			html += '<div class="pagination">';
+			html += '<table cellspacing="0" cellpadding="0" border="0" width="100%"><tr>';
+			
+			html += '<td align="left" width="33%">';
+			if (cols.headerLeft) html += cols.headerLeft;
+			else html += commify(rows.length) + ' ' + pluralize(data_type, rows.length) + '';
+			html += '</td>';
+			
+			html += '<td align="center" width="34%">';
+				html += cols.headerCenter || '&nbsp;';
+			html += '</td>';
+			
+			html += '<td align="right" width="33%">';
+				html += cols.headerRight || 'Page 1 of 1';
+			html += '</td>';
+			
+			html += '</tr></table>';
+			html += '</div>';
+		}
 		
 		html += '<div style="margin-top:5px; overflow-x:auto;">';
 		
@@ -465,12 +752,141 @@ window.Page = class Page {
 		
 		if (!rows.length) {
 			html += '<tr><td colspan="'+cols.length+'" align="center" style="padding-top:10px; padding-bottom:10px; font-weight:bold;">';
-			html += 'No '+pluralize(data_type)+' found.';
+			if (args.empty_msg) html += args.empty_msg;
+			else html += 'No '+pluralize(data_type)+' found.';
 			html += '</td></tr>';
 		}
 		
 		html += '</table>';
 		html += '</div>';
+		
+		return html;
+	}
+	
+	getCompactTable(args, callback) {
+		// get html for sorted table (fake pagination, for looks only)
+		var html = '';
+		
+		var rows = args.rows;
+		var cols = args.cols;
+		var data_type = args.data_type;
+		
+		html += '<div class="data_table_compact" style="margin-top:5px; overflow-x:auto;">';
+		
+		var tattrs = args.attribs || {};
+		if (!tattrs.class) tattrs.class = 'data_table compact';
+		if (!tattrs.width) tattrs.width = '100%';
+		html += '<table ' + compose_attribs(tattrs) + '>';
+		
+		html += '<tr><th style="white-space:nowrap;">' + cols.join('</th><th style="white-space:nowrap;">') + '</th></tr>';
+		
+		for (var idx = 0, len = rows.length; idx < len; idx++) {
+			var row = rows[idx];
+			var tds = callback(row, idx);
+			if (tds.insertAbove) html += tds.insertAbove;
+			html += '<tr' + (tds.className ? (' class="'+tds.className+'"') : '') + (row.id ? (' data-id="'+row.id+'"') : '') + '>';
+			html += '<td>' + tds.join('</td><td>') + '</td>';
+			html += '</tr>';
+		} // foreach row
+		
+		if (!rows.length) {
+			html += '<tr><td colspan="'+cols.length+'" align="center" style="padding-top:10px; padding-bottom:10px; font-weight:bold;">';
+			if (args.empty_msg) html += args.empty_msg;
+			else html += 'No '+pluralize(data_type)+' found.';
+			html += '</td></tr>';
+		}
+		else if (args.append) {
+			html += args.append;
+		}
+		
+		html += '</table>';
+		if (args.below) html += args.below;
+		html += '</div>';
+		
+		return html;
+	}
+	
+	getBasicGrid() {
+		// get html for sorted grid table (fake pagination, for looks only)
+		var html = '';
+		var args = null;
+		
+		if (arguments.length == 1) {
+			// custom args calling convention
+			args = arguments[0];
+		}
+		else if (arguments.length == 2) {
+			// combo args + callback
+			args = arguments[0];
+			args.callback = arguments[1];
+		}
+		else {
+			// classic calling convention
+			args = {
+				rows: arguments[0],
+				cols: arguments[1],
+				data_type: arguments[2],
+				callback: arguments[3]
+			};
+		}
+		
+		var rows = args.rows;
+		var cols = args.cols;
+		var data_type = args.data_type;
+		var callback = args.callback;
+		
+		// pagination
+		html += '<div class="data_grid_pagination">';
+		
+			html += '<div style="text-align:left">';
+			if (cols.headerLeft) html += cols.headerLeft;
+			else html += commify(rows.length) + ' ' + pluralize(data_type, rows.length) + '';
+			html += '</div>';
+			
+			html += '<div style="text-align:center">';
+				html += cols.headerCenter || '&nbsp;';
+			html += '</div>';
+			
+			html += '<div style="text-align:right">';
+				html += cols.headerRight || 'Page 1 of 1';
+			html += '</div>';
+		
+		html += '</div>';
+		
+		html += '<div style="margin-top:5px;">';
+		
+		var tattrs = args.attribs || {};
+		if (args.class) tattrs.class = args.class;
+		if (!tattrs.class) {
+			tattrs.class = 'data_grid';
+			if (data_type.match(/^\w+$/)) tattrs.class += ' ' + data_type + '_grid';
+		}
+		if (!tattrs.style) tattrs.style = '';
+		tattrs.style += 'grid-template-columns: repeat(' + cols.length + ', auto);';
+		html += '<div ' + compose_attribs(tattrs) + '>';
+		
+		html += '<ul class="grid_row_header"><div>' + cols.join('</div><div>') + '</div></ul>';
+		
+		for (var idx = 0, len = rows.length; idx < len; idx++) {
+			var row = rows[idx];
+			var tds = callback(row, idx);
+			if (tds.insertAbove) html += tds.insertAbove;
+			html += '<ul class="grid_row ' + (tds.className || '') + '"' + (row.id ? (' data-id="'+row.id+'"') : '') + '>';
+			html += '<div>' + tds.join('</div><div>') + '</div>';
+			html += '</ul>';
+		} // foreach row
+		
+		if (!rows.length) {
+			html += '<ul class="grid_row_empty"><div style="grid-column-start: span ' + cols.length + ';">';
+			if (args.empty_msg) html += args.empty_msg;
+			else html += 'No '+pluralize(data_type)+' found.';
+			html += '</div></ul>';
+		}
+		
+		if (args.below) html += args.below;
+		
+		html += '</div>'; // scroll wrapper
+		html += '</div>'; // grid
 		
 		return html;
 	}
@@ -586,25 +1002,18 @@ window.Page = class Page {
 		return html;
 	}
 	
-	getNiceGroupList(group_match, link) {
-		// convert regexp into comma-separated group title list
-		if (group_match == '.+') return '(All)';
-		if (group_match == '(?!)') return '(None)';
-		
-		var titles = [];
-		group_match.split(/\W+/).forEach( function(group_id) {
-			if (group_id.match(/^\w+$/)) {
-				var group = find_object( config.groups, { id: group_id } );
-				if (!group) group = { id: group_id, title: group_id };
-				var title = '';
-				if (link) title += '<a href="#Groups?sub=edit&id=' + group.id + '">';
-				title += '<i class="mdi mdi-server-network">&nbsp;</i>' + group.title;
-				if (link) title += '</a>';
-				titles.push( title );
-			}
-		});
-		
-		return titles.join(', ');
+	getNiceGroupList(groups, glue, max) {
+		// get formatted group list
+		var self = this;
+		if (!glue) glue = ', ';
+		if (typeof(groups) == 'string') groups = groups.split(/\,\s*/);
+		if (!groups || !groups.length) return '(None)';
+		if (max && (groups.length > max)) {
+			var extras = groups.length - max;
+			groups = groups.slice(0, max);
+			return groups.map( function(group) { return self.getNiceGroup(group); } ).join(glue) + glue + ' and ' + extras + ' more';
+		}
+		return groups.map( function(group) { return self.getNiceGroup(group); } ).join(glue);
 	}
 	
 	getNiceGroup(item, link) {
@@ -679,32 +1088,42 @@ window.Page = class Page {
 		}
 	}
 	
-	check_add_remove_me($elem) {
+	checkAddRemoveMe(sel) {
 		// check if user's e-mail is contained in text field or not
+		// expects sel to point to the input
+		var $elem = $(sel);
 		var value = $elem.val().toLowerCase();
 		var email = app.user.email.toLowerCase();
 		var regexp = new RegExp( "\\b" + escape_regexp(email) + "\\b" );
 		return !!value.match(regexp);
 	}
 	
-	update_add_remove_me($elems) {
+	updateAddRemoveMe(sel) {
 		// update add/remove me text based on if user's e-mail is contained in text field
+		// expects sel to point to the input(s)
 		var self = this;
-				
-		$elems.each( function() {
+		
+		$(sel).each( function() {
 			var $elem = $(this);
-			var $span = $elem.next();
-						
-			if (self.check_add_remove_me($elem)) $span.html( '&raquo; Remove me' );
-			else $span.html( '&laquo; Add me' );
+			var $suffix = $elem.closest('div.form_row').find('div.form_suffix_icon');
+			
+			if (self.checkAddRemoveMe(this)) {
+				$suffix.removeClass('mdi-account-plus').addClass('mdi-account-minus').attr('title', "Remove Me");
+			}
+			else {
+				$suffix.removeClass('mdi-account-minus').addClass('mdi-account-plus').attr('title', "Add Me");
+			}
 		} );
 	}
 	
-	add_remove_me($elem) {
+	addRemoveMe(sel) {
 		// toggle user's e-mail in/out of text field
+		// expects sel to point to the div.form_suffix_icon
+		var $suffix = $(sel);
+		var $elem = $suffix.closest('div.form_row').find('input');
 		var value = trim( $elem.val().replace(/\,\s*\,/g, ',').replace(/^\s*\,\s*/, '').replace(/\s*\,\s*$/, '') );
 		
-		if (this.check_add_remove_me($elem)) {
+		if (this.checkAddRemoveMe( $elem[0] )) {
 			// remove e-mail
 			var email = app.user.email.toLowerCase();
 			var regexp = new RegExp( "\\b" + escape_regexp(email) + "\\b", "i" );
@@ -717,7 +1136,7 @@ window.Page = class Page {
 			$elem.val( value + app.user.email );
 		}
 		
-		this.update_add_remove_me($elem);
+		this.updateAddRemoveMe( $elem[0] );
 	}
 	
 	get_custom_combo_unit_box(id, value, items, class_name) {
@@ -811,7 +1230,7 @@ window.Page = class Page {
 					var above = true;
 					var pos = $tr.offset();
 					var height = $tr.height();
-					var y = event.clientY;
+					var y = event.clientY + window.scrollY;
 					if (y > pos.top + (height / 2)) above = false;
 					
 					// remove element being dragged
@@ -890,6 +1309,128 @@ window.Page = class Page {
 		if (!$table.length) return;
 		
 		var $rows = $table.find('tr').slice(1); // omit header row
+		$('div.dropzone').remove();
+		$rows.removeData('drag_idx');
+		$table.find('.dragging').removeClass('dragging');
+	}
+	
+	setupDraggableGrid(args) {
+		// allow grid rows to be drag-sorted
+		// args: { table_sel, handle_sel, drag_ghost_sel, drag_ghost_x, drag_ghost_y, callback }
+		var $table = $(args.table_sel);
+		var $rows = $table.find('ul.grid_row');
+		var $cur = null;
+		
+		var createDropZone = function($tr, idx, pos) {
+			pos.top -= Math.floor( pos.height / 2 );
+			
+			$('<div><div class="dz_bar"></div></div>')
+				.addClass('dropzone')
+				.css({
+					left: '' + pos.left + 'px',
+					top: '' + pos.top + 'px',
+					width: '' + pos.width + 'px',
+					height: '' + pos.height + 'px'
+				})
+				.appendTo('body')
+				.on('dragover', function(event) {
+					var e = event.originalEvent;
+					e.preventDefault();
+					e.dataTransfer.effectAllowed = "move";
+				})
+				.on('dragenter', function(event) {
+					var e = event.originalEvent;
+					e.preventDefault();
+					$(this).addClass('drag');
+				})
+				.on('dragleave', function(event) {
+					$(this).removeClass('drag');
+				})
+				.on('drop', function(event) {
+					var e = event.originalEvent;
+					e.preventDefault();
+					
+					// make sure we didn't drop on ourselves
+					if (idx == $cur.data('drag_idx')) return false;
+					
+					// see if we need to insert above or below target
+					var above = true;
+					var bounds = $tr.innerBounds();
+					var y = event.clientY + window.scrollY;
+					if (y > bounds.top + (bounds.height / 2)) above = false;
+					
+					// remove element being dragged
+					$cur.detach();
+					
+					// insert at new location
+					if (above) $tr.before( $cur );
+					else $tr.after( $cur );
+					
+					// fire callback, pass new sorted collection
+					args.callback( $table.find('ul.grid_row') );
+				});
+		}; // createDropZone
+		
+		$rows.each( function(row_idx) {
+			var $handle = $(this).find(args.handle_sel);
+			
+			$handle.on('dragstart', function(event) {
+				var e = event.originalEvent;
+				var $tr = $cur = $(this).closest('ul');
+				var $ghost = $tr.find(args.drag_ghost_sel).addClass('dragging');
+				var ghost_x = ('drag_ghost_x' in args) ? args.drag_ghost_x : Math.floor($ghost.width() / 2);
+				var ghost_y = ('drag_ghost_y' in args) ? args.drag_ghost_y : Math.floor($ghost.height() / 2);
+				
+				e.dataTransfer.setDragImage( $ghost.get(0), ghost_x, ghost_y );
+				e.dataTransfer.effectAllowed = 'move';
+				e.dataTransfer.setData('text/html', 'blah'); // needed for FF.
+				
+				// need to recalc $rows for each drag
+				$rows = $table.find('ul.grid_row');
+				
+				$rows.each( function(idx) {
+					var $tr = $(this);
+					$tr.data('drag_idx', idx);
+				});
+				
+				// and we need to recalc row_idx too
+				var row_idx = $tr.data('drag_idx');
+				
+				// create drop zones for each row
+				// (except those immedately surrounding the row we picked up)
+				$rows.each( function(idx) {
+					var $tr = $(this);
+					if ((idx != row_idx) && (idx != row_idx + 1)) {
+						var bounds = $tr.innerBounds();
+						createDropZone( $tr, idx, bounds );
+					}
+				});
+				
+				// one final zone below table (possibly)
+				if (row_idx != $rows.length - 1) {
+					var $last_tr = $rows.slice(-1);
+					var bounds = $last_tr.innerBounds();
+					bounds.top += bounds.height;
+					createDropZone( $last_tr, $rows.length, bounds );
+				}
+			}); // dragstart
+			
+			$handle.on('dragend', function(event) {
+				// cleanup drop zones
+				$('div.dropzone').remove();
+				$rows.removeData('drag_idx');
+				$table.find('.dragging').removeClass('dragging');
+			}); // dragend
+			
+		} ); // foreach row
+	}
+	
+	cancelGridDrag(table_sel) {
+		// cancel drag operation in progress (well, as best we can)
+		var $table = $(table_sel);
+		if (!$table.length) return;
+		
+		var $rows = $table.find('ul.grid_row');
 		$('div.dropzone').remove();
 		$rows.removeData('drag_idx');
 		$table.find('.dragging').removeClass('dragging');
@@ -987,7 +1528,7 @@ window.PageManager = class PageManager {
 		if (typeof(result) == 'boolean') return result;
 		else throw("Page " + id + " onActivate did not return a boolean!");
 		
-		// expand section if applicable
+		// expand section if applicable -- TODO: unreachable code:
 		var $sect = $('#tab_'+id).parent().prev();
 		if ($sect.length && $sect.hasClass('section_title')) this.expandSidebarGroup( $sect );
 	}
@@ -1161,6 +1702,7 @@ var Nav = {
 				this.old_loc = this.loc;
 				if (this.old_loc == 'init') this.old_loc = config.DefaultPage || 'Main';
 				this.loc = anchor;
+				app.notifyUserNav(this.loc);
 			}
 			else {
 				// current page aborted navigation -- recover current page without refresh

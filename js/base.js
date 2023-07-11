@@ -97,7 +97,7 @@ var app = {
 		app.api.post( 'user/logout', {
 			session_id: app.getPref('session_id')
 		}, 
-		function(resp, tx) {
+		function(resp) {
 			Dialog.hideProgress();
 			
 			delete app.user;
@@ -131,6 +131,7 @@ var app = {
 			var id = this.page_manager.current_page_id;
 			var page = this.page_manager.find(id);
 			if (page && page.onResize) page.onResize( get_inner_window_size() );
+			if (page && page.updateBoxButtonFloaterPosition) page.updateBoxButtonFloaterPosition();
 		}
 		
 		// also handle sending resize events at a 250ms delay
@@ -140,7 +141,7 @@ var app = {
 		}
 		
 		if (Dialog.active) Dialog.autoResize();
-		else if (Popover.enabled && !this.mobile) Popover.detach();
+		if (Popover.enabled && !this.mobile) Popover.detach();
 	},
 	
 	handleResizeDelay: function() {
@@ -190,7 +191,7 @@ var app = {
 		$('.invalid').removeClass('invalid');
 	},
 	
-	showMessage: function(type, msg, lifetime) {
+	showMessageOLD: function(type, msg, lifetime) {
 		// show success, warning or error message
 		// Dialog.hide();
 		var icon = '';
@@ -213,9 +214,39 @@ var app = {
 		}
 	},
 	
+	showMessage: function(type, msg, lifetime) {
+		// show success, warning or error message
+		// Dialog.hide();
+		var icon = '';
+		switch (type) {
+			case 'success': icon = 'check-circle'; break;
+			case 'warning': icon = 'alert-circle'; break;
+			case 'error': icon = 'alert-decagram'; break;
+		}
+		
+		var html = '';
+		html += '<div class="toast ' + type + '" onClick="app.hideMessage(250)" style="display:none">';
+			html += '<i class="mdi mdi-' + icon + '"></i>';
+			html += '<span>' + msg + '</span>';
+		html += '</div>';
+		
+		$('div.toast').fadeOut( 250, function() { $(this).remove(); } );
+		$('body').append(html);
+		$('div.toast').fadeIn(250);
+		
+		if (this.messageTimer) clearTimeout( this.messageTimer );
+		if ((type == 'success') || lifetime) {
+			if (!lifetime) lifetime = 8;
+			this.messageTimer = setTimeout( function() { app.hideMessage(500); }, lifetime * 1000 );
+		}
+	},
+	
 	hideMessage: function(animate) {
 		if (animate) $('#d_message').hide(animate);
 		else $('#d_message').hide();
+		
+		if (animate) $('div.toast').fadeOut( animate, function() { $(this).remove(); } );
+		else $('div.toast').remove();
 	},
 	
 	api: {
@@ -280,7 +311,7 @@ var app = {
 		}, // api.request
 		
 		post: function(cmd, data, callback, errorCallback) {
-			// send HTTP GET to API endpoint
+			// send HTTP POST to API endpoint
 			var url = cmd;
 			if (!url.match(/^(\w+\:\/\/|\/)/)) url = app.base_api_url + "/" + cmd;
 			
@@ -298,6 +329,19 @@ var app = {
 					"Content-Type": app.plain_text_post ? 'text/plain' : 'application/json',
 				},
 				body: json_raw
+			}, callback, errorCallback );
+		}, // api.post
+		
+		upload: function(cmd, data, callback, errorCallback) {
+			// send FormData to API endpoint
+			var url = cmd;
+			if (!url.match(/^(\w+\:\/\/|\/)/)) url = app.base_api_url + "/" + cmd;
+			
+			Debug.trace( 'api', "Uploading files to: " + url );
+			
+			app.api.request( url, {
+				method: "POST",
+				body: data
 			}, callback, errorCallback );
 		}, // api.post
 		
@@ -365,11 +409,13 @@ var app = {
 		if (theme == 'dark') {
 			$('body').addClass('dark');
 			$('#d_theme_ctrl').html( '<i class="mdi mdi-weather-night"></i>' );
+			$('head > meta[name = theme-color]').attr('content', '#222222');
 			this.setPref('theme', 'dark');
 		}
 		else {
 			$('body').removeClass('dark');
 			$('#d_theme_ctrl').html( '<i class="mdi mdi-lightbulb-on-outline"></i>' );
+			$('head > meta[name = theme-color]').attr('content', '#3791F5');
 			this.setPref('theme', 'light');
 		}
 		
@@ -416,6 +462,11 @@ var app = {
 			$('div.sidebar').removeClass('force');
 			$('#sidebar_overlay').stop().fadeOut( 500, function() { $(this).remove(); } );
 		}
+	},
+	
+	notifyUserNav: function(loc) {
+		// override in app
+		// called by each page nav operation
 	}
 	
 }; // app object
@@ -524,8 +575,8 @@ $(document).ready(function() {
 });
 
 window.addEventListener( "keydown", function(event) {
-	Dialog.confirm_key(event);
-	Popover.handleKeyDown(event);
+	if (Popover.enabled) Popover.handleKeyDown(event);
+	else Dialog.confirm_key(event);
 }, false );
 
 window.addEventListener( "resize", function() {

@@ -1,5 +1,34 @@
 // Misc 3rd party utilities for Orchestra
 
+$.fn.innerBounds = function() {
+	// compute outer bounds of child elements
+	// (for non-measurable elems like ul w/display:contents)
+	var $this = this.length > 1 ? this.eq(0) : this;
+	var bounds = { left:-1, top:-1, right:-1, bottom:-1 };
+	
+	$this.children().each( function() {
+		var temp = this.getBoundingClientRect();
+		if (temp.width && temp.height) {
+			if ((bounds.left == -1) || (temp.left < bounds.left)) bounds.left = temp.left;
+			if ((bounds.top == -1) || (temp.top < bounds.top)) bounds.top = temp.top;
+			if ((bounds.right == -1) || (temp.right > bounds.right)) bounds.right = temp.right;
+			if ((bounds.bottom == -1) || (temp.bottom > bounds.bottom)) bounds.bottom = temp.bottom;
+		}
+	} );
+	
+	bounds.left += window.scrollX;
+	bounds.top += window.scrollY;
+	bounds.right += window.scrollX;
+	bounds.bottom += window.scrollY;
+	
+	bounds.x = bounds.left;
+	bounds.y = bounds.top;
+	bounds.width = bounds.right - bounds.left;
+	bounds.height = bounds.bottom - bounds.top;
+	
+	return bounds;
+};
+
 // ----------------------------------------------
 // https://github.com/teamdf/jquery-visible
 (function($){

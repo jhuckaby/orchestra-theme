@@ -18,7 +18,11 @@ var Calendar = {
 			$this.on('change', function() {
 				var epoch = parseInt(this.value);
 				if (epoch) {
-					var fmt = format_date( epoch, app.user.date_format );
+					var fmt = app.formatDate(epoch, { 
+						year: 'numeric',
+						month: 'long',
+						day: 'numeric'
+					});
 					$anchor.html( '<i class="mdi mdi-calendar">&nbsp;</i>' + fmt );
 				}
 				else {
@@ -159,4 +163,4 @@ var Calendar = {
 		this.redraw();
 	}
 	
-};
+}; // Calendar
