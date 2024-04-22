@@ -191,29 +191,6 @@ var app = {
 		$('.invalid').removeClass('invalid');
 	},
 	
-	showMessageOLD: function(type, msg, lifetime) {
-		// show success, warning or error message
-		// Dialog.hide();
-		var icon = '';
-		switch (type) {
-			case 'success': icon = 'check-circle'; break;
-			case 'warning': icon = 'alert-circle'; break;
-			case 'error': icon = 'alert-decagram'; break;
-		}
-		if (icon) {
-			msg = '<i class="mdi mdi-'+icon+'">&nbsp;&nbsp;&nbsp;</i>' + msg;
-		}
-		
-		$('#d_message_inner').html( msg );
-		$('#d_message').hide().removeClass().addClass('message').addClass(type).show(250);
-		
-		if (this.messageTimer) clearTimeout( this.messageTimer );
-		if ((type == 'success') || lifetime) {
-			if (!lifetime) lifetime = 8;
-			this.messageTimer = setTimeout( function() { app.hideMessage(500); }, lifetime * 1000 );
-		}
-	},
-	
 	showMessage: function(type, msg, lifetime) {
 		// show success, warning or error message
 		// Dialog.hide();
@@ -222,28 +199,40 @@ var app = {
 			case 'success': icon = 'check-circle'; break;
 			case 'warning': icon = 'alert-circle'; break;
 			case 'error': icon = 'alert-decagram'; break;
+			case 'info': icon = 'information-outline'; break;
+			
+			default:
+				if (type.match(/^(\w+)\/(.+)$/)) { type = RegExp.$1; icon = RegExp.$2; }
+			break;
 		}
 		
 		var html = '';
-		html += '<div class="toast ' + type + '" onClick="app.hideMessage(250)" style="display:none">';
+		html += '<div class="toast ' + type + '" style="display:none">';
 			html += '<i class="mdi mdi-' + icon + '"></i>';
 			html += '<span>' + msg + '</span>';
 		html += '</div>';
 		
-		$('div.toast').fadeOut( 250, function() { $(this).remove(); } );
-		$('body').append(html);
-		$('div.toast').fadeIn(250);
+		var $toast = $(html);
+		var timer = null;
+		$('#toaster').prepend( $toast );
 		
-		if (this.messageTimer) clearTimeout( this.messageTimer );
-		if ((type == 'success') || lifetime) {
+		$toast.show(250);
+		$toast.on('click', function() {
+			if (timer) clearTimeout(timer);
+			$toast.hide( 250, function() { $(this).remove(); } );
+		} );
+		
+		if ((type == 'success') || (type == 'info') || lifetime) {
 			if (!lifetime) lifetime = 8;
-			this.messageTimer = setTimeout( function() { app.hideMessage(500); }, lifetime * 1000 );
+			timer = setTimeout( function() {
+				$toast.hide( 500, function() { $(this).remove(); } );
+			}, lifetime * 1000 );
 		}
 	},
 	
 	hideMessage: function(animate) {
-		if (animate) $('#d_message').hide(animate);
-		else $('#d_message').hide();
+		// if (animate) $('#d_message').hide(animate);
+		// else $('#d_message').hide();
 		
 		if (animate) $('div.toast').fadeOut( animate, function() { $(this).remove(); } );
 		else $('div.toast').remove();
@@ -395,6 +384,12 @@ var app = {
 		this.savePrefs();
 	},
 	
+	deletePref: function(key) {
+		// delete user preference, accepts single key, dot.path or slash/path syntax.
+		delete_path( this.prefs, key );
+		this.savePrefs();
+	},
+	
 	savePrefs: function() {
 		// save local pref cache back to localStorage
 		localStorage.prefs = JSON.stringify( this.prefs );
@@ -406,31 +401,43 @@ var app = {
 	
 	setTheme: function(theme) {
 		// toggle light/dark theme
+		var icon = '';
+		
+		this.setPref('theme', theme);
+		if (this.onThemeChange) this.onThemeChange(theme);
+		
+		switch (theme) {
+			case 'light': icon = 'weather-sunny'; break;
+			case 'dark': icon = 'weather-night'; break;
+			case 'auto': icon = 'circle-half-full'; break;
+		}
+		
+		if (theme == 'auto') {
+			if (window.matchMedia('(prefers-color-scheme: dark)').matches) theme = 'dark';
+			else theme = 'light';
+		}
+		
 		if (theme == 'dark') {
 			$('body').addClass('dark');
-			$('#d_theme_ctrl').html( '<i class="mdi mdi-weather-night"></i>' );
 			$('head > meta[name = theme-color]').attr('content', '#222222');
-			this.setPref('theme', 'dark');
 		}
 		else {
 			$('body').removeClass('dark');
-			$('#d_theme_ctrl').html( '<i class="mdi mdi-lightbulb-on-outline"></i>' );
 			$('head > meta[name = theme-color]').attr('content', '#3791F5');
-			this.setPref('theme', 'light');
 		}
 		
-		if (this.onThemeChange) this.onThemeChange(theme);
+		$('#d_theme_ctrl').html( '<i class="mdi mdi-' + icon + '"></i>' );
 	},
 	
 	initTheme: function() {
 		// set theme to user's preference
-		if (0 && !this.getPref('theme')) {
-			// brand new user: try to guess theme using media query
-			if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-				this.setPref('theme', 'dark');
-			}
-		}
-		this.setTheme( this.getPref('theme') || 'light' );
+		this.setTheme( this.getPref('theme') || 'auto' );
+		
+		// listen for changes
+		var match = window.matchMedia('(prefers-color-scheme: dark)');
+		match.addEventListener('change', function(event) {
+			if (app.getPref('theme') == 'auto') app.setTheme('auto');
+		});
 	},
 	
 	toggleTheme: function() {

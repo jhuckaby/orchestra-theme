@@ -36,6 +36,11 @@ function compose_query_string(queryObj) {
 	return qs;
 }
 
+function get_text_from_bytes_dash(bytes) {
+	// get super-appreviated bytes-to-text, for dash widgets
+	return get_text_from_bytes(bytes, 1).replace(/\s+/g, '').replace(/bytes/, 'b');
+};
+
 function get_text_from_bytes(bytes, precision) {
 	// convert raw bytes to english-readable format
 	// set precision to 1 for ints, 10 for 1 decimal point (default), 100 for 2, etc.
@@ -176,31 +181,47 @@ function get_text_from_seconds_round(sec, abbrev) {
 	sec = Math.round(sec);
 	if (sec < 0) { sec =- sec; neg = '-'; }
 	
-	var text = abbrev ? "sec" : "second";
+	var suffix = abbrev ? "sec" : "second";
 	var amt = sec;
 	
 	if (sec > 59) {
 		var min = Math.round(sec / 60);
-		text = abbrev ? "min" : "minute"; 
+		suffix = abbrev ? "min" : "minute"; 
 		amt = min;
 		
 		if (min > 59) {
 			var hour = Math.round(min / 60);
-			text = abbrev ? "hr" : "hour"; 
+			suffix = abbrev ? "hr" : "hour"; 
 			amt = hour;
 			
 			if (hour > 23) {
 				var day = Math.round(hour / 24);
-				text = "day"; 
+				suffix = "day"; 
 				amt = day;
 			} // hour>23
 		} // min>59
 	} // sec>59
 	
-	var text = "" + amt + " " + text;
+	if (abbrev === 2) suffix = suffix.substring(0, 1);
+	
+	var text = "" + amt + " " + suffix;
 	if ((amt != 1) && !abbrev) text += "s";
+	if (abbrev === 2) text = text.replace(/\s+/g, '');
 	
 	return(neg + text);
+};
+
+function get_text_from_ms_round(ms, abbrev) {
+	// convert raw milliseconds to human-readable relative time
+	// round to nearest if 1s or above
+	if (Math.abs(ms) >= 1000) return get_text_from_seconds_round(ms / 1000, abbrev);
+	var neg = '';
+	if (ms < 0) { ms =- ms; neg = '-'; }
+	var suffix = abbrev ? "ms" : "millisecond";
+	var text = "" + ms + " " + suffix;
+	if ((ms != 1) && !abbrev) text += "s";
+	if (abbrev === 2) text = text.replace(/\s+/g, '');
+	return neg + text;
 };
 
 function get_seconds_from_text(text) {
@@ -618,6 +639,35 @@ function get_path(target, path) {
 	}
 	
 	return target[key];
+};
+
+function delete_path(target, path) {
+	// delete path using dir/slash/syntax or dot.path.syntax
+	// preserve dots and slashes if escaped
+	var parts = path.replace(/\\\./g, '__PXDOT__').replace(/\\\//g, '__PXSLASH__').split(/[\.\/]/).map( function(elem) {
+		return elem.replace(/__PXDOT__/g, '.').replace(/__PXSLASH__/g, '/');
+	} );
+	
+	var key = parts.pop();
+	
+	// traverse path
+	while (parts.length) {
+		var part = parts.shift();
+		if (part) {
+			if (!(part in target)) {
+				// auto-create nodes
+				target[part] = {};
+			}
+			if (typeof(target[part]) != 'object') {
+				// path runs into non-object
+				return false;
+			}
+			target = target[part];
+		}
+	}
+	
+	delete target[key];
+	return true;
 };
 
 function substitute(text, args, fatal) {

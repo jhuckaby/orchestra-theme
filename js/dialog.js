@@ -181,6 +181,26 @@ var Dialog = {
 		Dialog.active = 'confirmation';
 	},
 	
+	confirmDanger: function(title, html, ok_btn_label, callback) {
+		// show simple OK / Cancel dialog with custom text
+		// fires callback with true (OK) or false (Cancel)
+		if (!ok_btn_label) ok_btn_label = "OK";
+		this.confirm_callback = callback;
+		
+		var inner_html = "";
+		if (html.match(/^</)) inner_html = html;
+		else inner_html += '<div class="confirm_container">'+html+'</div>';
+		
+		var buttons_html = "";
+		buttons_html += '<div class="button" onMouseUp="Dialog.confirm_click(false)">Cancel</div>';
+		buttons_html += '<div class="button delete" onMouseUp="Dialog.confirm_click(true)">'+ok_btn_label+'</div>';
+		
+		this.showSimpleDialog( '<span style="color:var(--red)">' + title + '</span>', inner_html, buttons_html );
+		
+		// special mode for key capture
+		Dialog.active = 'confirmation';
+	},
+	
 	confirm_click: function(result) {
 		// user clicked OK or Cancel in confirmation dialog, fire callback
 		// caller MUST deal with Dialog.hide() if result is true

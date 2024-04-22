@@ -835,25 +835,31 @@ window.Page = class Page {
 		var data_type = args.data_type;
 		var callback = args.callback;
 		
-		// pagination
-		html += '<div class="data_grid_pagination">';
-		
-			html += '<div style="text-align:left">';
-			if (cols.headerLeft) html += cols.headerLeft;
-			else html += commify(rows.length) + ' ' + pluralize(data_type, rows.length) + '';
+		if (!args.hide_pagination) {
+			// pagination
+			html += '<div class="data_grid_pagination">';
+			
+				html += '<div style="text-align:left">';
+				if (cols.headerLeft) html += cols.headerLeft;
+				else html += commify(rows.length) + ' ' + pluralize(data_type, rows.length) + '';
+				html += '</div>';
+				
+				html += '<div style="text-align:center">';
+					html += cols.headerCenter || '&nbsp;';
+				html += '</div>';
+				
+				html += '<div style="text-align:right">';
+					html += cols.headerRight || 'Page 1 of 1';
+				html += '</div>';
+			
 			html += '</div>';
 			
-			html += '<div style="text-align:center">';
-				html += cols.headerCenter || '&nbsp;';
-			html += '</div>';
-			
-			html += '<div style="text-align:right">';
-				html += cols.headerRight || 'Page 1 of 1';
-			html += '</div>';
-		
-		html += '</div>';
-		
-		html += '<div style="margin-top:5px;">';
+			html += '<div style="margin-top:5px;">';
+		}
+		else {
+			// no pagination
+			html += '<div>';
+		}
 		
 		var tattrs = args.attribs || {};
 		if (args.class) tattrs.class = args.class;
@@ -1052,6 +1058,7 @@ window.Page = class Page {
 	checkUserExists(field) {
 		// check if user exists, update UI checkbox
 		// called after field changes
+		var self = this;
 		var $field = $(field);
 		var username = trim( $field.val().toLowerCase() );
 		var $elem = $field.closest('.form_row').find('.fr_suffix .checker');
@@ -1059,6 +1066,8 @@ window.Page = class Page {
 		if (username.match(/^[\w\-\.]+$/)) {
 			// check with server
 			app.api.get('app/check_user_exists', { username: username }, function(resp) {
+				if (!self.active) return; // sanity
+				
 				if (resp.user_exists) {
 					// username taken
 					$elem.css('color','red').html('<span class="mdi mdi-alert-circle"></span>').attr('title', "Username is taken.");
