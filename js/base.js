@@ -36,10 +36,50 @@ var app = {
 		$('.header_title').html( title );
 	},
 	
+	setHeaderNav: function(items) {
+		// populate header with multiple nav elements
+		var html = '<div class="header_nav_cont">';
+		
+		items.forEach( function(item, idx) {
+			if (typeof(item) == 'string') { html += item; return; } // custom
+			if (!item.type && (idx > 0)) html += '<div class="header_nav_sep"><i class="mdi mdi-chevron-right"></i></div>';
+			if (item.loc) item.type = 'link';
+			
+			switch (item.type) {
+				case 'badge':
+					html += '<div class="color_label ' + item.color + '">';
+					if (item.icon) html += '<i class="mdi mdi-' + item.icon + '">&nbsp;</i>';
+					html += item.title + '</div>';
+				break;
+				
+				case 'link':
+					html += '<a class="header_nav_item" href="' + item.loc + '">';
+					if (item.icon) html += '<i class="mdi mdi-' + item.icon + '"></i>';
+					html += item.title + '</a>';
+				break;
+				
+				default:
+					html += '<div class="header_nav_item">';
+					if (item.icon) html += '<i class="mdi mdi-' + item.icon + '"></i>';
+					html += item.title + '</div>';
+				break;
+			} // switch item.type
+		} ); // foreach nav item
+		
+		html += '</div>';
+		this.setHeaderTitle(html);
+	},
+	
 	showSidebar: function(visible) {
 		// show or hide sidebar
 		if (visible) $('body').addClass('sidebar');
 		else $('body').removeClass('sidebar');
+	},
+	
+	highlightTab: function(id) {
+		// highlight custom tab in sidebar
+		$('.sidebar .section_item').removeClass('active').addClass('inactive');
+		$('#tab_' + id).removeClass('inactive').addClass('active');
 	},
 	
 	updateHeaderInfo: function() {
@@ -155,12 +195,23 @@ var app = {
 		}
 	},
 	
-	handleUnload: function(e) {
+	handleKeyDown: function(event) {
+		// send keydown event to page if text element isn't current focused
+		if (document.activeElement && document.activeElement.tagName.match(/^(INPUT|TEXTAREA)$/)) return;
+		
+		if (this.page_manager && this.page_manager.current_page_id) {
+			var id = this.page_manager.current_page_id;
+			var page = this.page_manager.find(id);
+			if (page && page.onKeyDown) page.onKeyDown(event);
+		}
+	},
+	
+	handleUnload: function(event) {
 		// called just before user navs off
 		if (this.page_manager && this.page_manager.current_page_id && $P && $P() && $P().onBeforeUnload) {
 			var result = $P().onBeforeUnload();
 			if (result) {
-				(e || window.event).returnValue = result; //Gecko + IE
+				(event || window.event).returnValue = result; //Gecko + IE
 				return result; // Webkit, Safari, Chrome etc.
 			}
 		}
@@ -191,7 +242,7 @@ var app = {
 		$('.invalid').removeClass('invalid');
 	},
 	
-	showMessage: function(type, msg, lifetime) {
+	showMessage: function(type, msg, lifetime, loc) {
 		// show success, warning or error message
 		// Dialog.hide();
 		var icon = '';
@@ -220,6 +271,7 @@ var app = {
 		$toast.on('click', function() {
 			if (timer) clearTimeout(timer);
 			$toast.hide( 250, function() { $(this).remove(); } );
+			if (loc) Nav.go(loc);
 		} );
 		
 		if ((type == 'success') || (type == 'info') || lifetime) {
@@ -583,7 +635,8 @@ $(document).ready(function() {
 
 window.addEventListener( "keydown", function(event) {
 	if (Popover.enabled) Popover.handleKeyDown(event);
-	else Dialog.confirm_key(event);
+	else if (Dialog.active) Dialog.confirm_key(event);
+	else app.handleKeyDown(event);
 }, false );
 
 window.addEventListener( "resize", function() {
