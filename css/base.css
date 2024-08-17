@@ -75,7 +75,7 @@ body {
 	--shadow-color: rgb(233, 236, 240);
 	--background-color: rgb(248, 250, 252);
 	--header-background-color: rgb(255, 255, 255);
-	--header-text-color: rgb(115, 115, 130);
+	--header-text-color: rgb(125, 135, 150);
 	--box-background-color: rgb(255, 255, 255);
 	--form-background-color: rgb(248, 250, 252);
 	--table-header-background-color: rgba(0, 50, 100, 0.03);
@@ -84,6 +84,7 @@ body {
 	--sidebar-text-color: rgb(115, 115, 130);
 	
 	--body-text-color: rgb(60, 70, 85);
+	--link-color: rgb(80, 90, 105);
 	--label-color: rgb(115, 115, 130);
 	--icon-color: rgb(185, 190, 200);
 	
@@ -96,6 +97,8 @@ body {
 	/* background: linear-gradient(135deg, rgba(252,252,252,1) 0%, rgba(248,248,248,1) 100%); */
 	color: var(--body-text-color);
 	font-family: var(--font-family-ui);
+	
+	accent-color: var(--theme-color);
 }
 
 body.dark {
@@ -113,6 +116,7 @@ body.dark {
 	--sidebar-text-color: rgb(125, 135, 150);
 	
 	--body-text-color: rgb(170, 180, 200);
+	--link-color: rgb(145, 155, 170);
 	--label-color: rgb(145, 155, 170);
 	--icon-color: rgb(115, 115, 130);
 }
@@ -164,17 +168,18 @@ body.dark fieldset input {
 }
 
 a, .link {
-	color: var(--label-color);
+	color: var(--link-color);
 }
 a:hover, .link:hover {
+	text-decoration: underline;
 	color: var(--theme-color);
 }
 a:active, .link:active {
 	color: var(--theme-color-half);
 }
 
-.link { 
-	text-decoration: underline;
+a, .link { 
+	text-decoration: none;
 	cursor: pointer; 
 }
 .link.nd {
@@ -398,9 +403,6 @@ div.header {
 	background-position: 30px center;
 	background-size: 170px auto;
 }
-body.dark div.header {
-	box-shadow: none;
-}
 
 body.sidebar div.header {
 	padding-left: 30px;
@@ -434,9 +436,11 @@ body.sidebar div.header {
 }
 
 div.header > div.header_title {
-	line-height: calc( var(--header-height) - 1px );
+	height: var(--header-height);
+	line-height: var(--header-height);
+	/* line-height: calc( var(--header-height) - 1px ); */
 	/* margin-left: 20px; */
-	font-size: 21px;
+	font-size: 20px;
 	font-weight: 700;
 	/* letter-spacing: -1px; */
 	/* color: var(--theme-color); */
@@ -446,9 +450,58 @@ div.header > div.header_title {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
-div.header > div.header_title > i {
-	color: var(--icon-color);
-	padding-right: 3px;
+
+.header_nav_cont {
+	display: flex;
+	align-items: center;
+	height: var(--header-height);
+}
+
+.header_nav_item {
+	height: var(--header-height);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	cursor: default;
+}
+
+a.header_nav_item {
+	text-overflow: clip;
+	color: var(--header-text-color);
+	text-decoration: none;
+	cursor: pointer;
+}
+a.header_nav_item:hover {
+	color: var(--theme-color);
+	text-decoration: underline;
+}
+
+div.header_nav_item {
+	text-overflow: ellipsis;
+}
+
+.header_nav_item > i {
+	padding-right: 5px;
+}
+
+.header_nav_sep {
+	height: var(--header-height);
+	padding-left: 5px; 
+	padding-right: 5px;
+}
+
+.header_nav_cont .color_label {
+	position: relative;
+	top: 0px;
+	margin-left: 15px;
+	letter-spacing: 0;
+	
+	height: 21px;
+	line-height: 16px;
+}
+
+.header_nav_cont .progress_bar_container {
+	margin-left: 15px;
 }
 
 div.header_widget {
@@ -472,16 +525,25 @@ div.header_widget {
 body.dark div.header_widget {
 	border: 1px solid var(--border-color);
 }
-div.header_widget:hover {
+div.header_widget:hover, div.header_widget.popped {
 	top: -1px;
 	color: var(--theme-color);
 	/* background-color: var(--box-background-color); */
-	border: 1px solid var(--theme-color-half);
+	border: 1px solid var(--theme-color-half) !important;
 	box-shadow: 0px 2px 1px var(--shadow-color);
 	opacity: 1.0;
 }
 body.dark div.header_widget:hover {
 	border: 1px solid var(--theme-color-half);
+}
+
+div.header_widget.red {
+	color: var(--red);
+	border: 1px solid var(--red-half) !important;
+}
+div.header_widget.red:hover, div.header_widget.red.popped {
+	color: var(--red-brighter);
+	border: 1px solid var(--red) !important;
 }
 
 div.header_widget.icon {
@@ -791,6 +853,11 @@ div.dialog.inline > div.box_content {
 	padding: 50px 30px 50px 30px;
 }
 
+div.box_content.loading {
+	transition: 0.5s ease opacity;
+	opacity: 0.5;
+}
+
 div.box_buttons {
 	/* background: var(--box-background-color); */
 	font-size: 14px;
@@ -859,12 +926,12 @@ body.dark .button:hover {
 .button.primary:hover {
 	background: var(--theme-color-highlight) !important;
 	border: 1px solid var(--border-color) !important;
-	color: white;
+	color: white !important;
 }
 
 body.dark .button.primary {
 	background: var(--theme-color);
-	color: white;
+	color: rgba(255, 255, 255, 0.85);
 }
 
 .button.danger:hover {
@@ -2182,7 +2249,7 @@ ul.grid_row_empty > div {
 
 /* Color Labels */
 
-span.color_label {
+.color_label {
 	border-radius: 5px;
 	padding: 3px 5px 3px 5px;
 	color: #fff;
@@ -2195,19 +2262,23 @@ span.color_label {
 	-moz-user-select: none;
 	-webkit-user-select: none;
 }
-span.color_label.blue { background: #5890db; }
-span.color_label.green { background: #44bb44; }
-span.color_label.yellow { background: #bbbb44; }
-span.color_label.red { background: #bb4444; }
-span.color_label.purple { background: #bb44bb; }
-span.color_label.gray { background: #aaaaaa; }
+body.dark .color_label {
+	color: rgba(255, 255, 255, 0.85);
+}
 
-body.dark span.color_label.blue { background: rgb(8, 64, 140); }
-body.dark span.color_label.green { background: rgb(0, 108, 0); }
-body.dark span.color_label.yellow { background: rgb(108, 108, 0); }
-body.dark span.color_label.red { background: rgb(108, 0, 0); }
-body.dark span.color_label.purple { background: rgb(108, 0, 108); }
-body.dark span.color_label.gray { background: rgb(90, 90, 90); }
+.color_label.blue { background: #5890db; }
+.color_label.green { background: #44bb44; }
+.color_label.yellow { background: #bbbb44; }
+.color_label.red { background: #bb4444; }
+.color_label.purple { background: #bb44bb; }
+.color_label.gray { background: #aaaaaa; }
+
+body.dark .color_label.blue { background: rgb(28, 84, 160); }
+body.dark .color_label.green { background: rgb(20, 128, 20); }
+body.dark .color_label.yellow { background: rgb(128, 128, 20); }
+body.dark .color_label.red { background: rgb(128, 20, 20); }
+body.dark .color_label.purple { background: rgb(128, 20, 128); }
+body.dark .color_label.gray { background: rgb(110, 110, 110); }
 
 .color_label.linky {
 	cursor: pointer;
