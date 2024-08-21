@@ -186,6 +186,10 @@ a, .link {
 	text-decoration: none;
 }
 
+a.danger:hover, .link.danger:hover {
+	color: var(--red) !important;
+}
+
 /* Custom Classes */
 
 .clear { clear: both; }
@@ -546,6 +550,15 @@ div.header_widget.red:hover, div.header_widget.red.popped {
 	border: 1px solid var(--red) !important;
 }
 
+div.header_widget.yellow {
+	color: var(--orange);
+	border: 1px solid var(--orange) !important;
+}
+div.header_widget.yellow:hover, div.header_widget.yellow.popped {
+	color: var(--orange);
+	border: 1px solid var(--orange) !important;
+}
+
 div.header_widget.icon {
 	width: 30px;
 	font-size: 18px;
@@ -618,11 +631,11 @@ div.header_search_widget > input[type="text"]:focus {
 #toaster {
 	position: fixed;
 	box-sizing: border-box;
-	z-index: 10003;
+	z-index: 999;
 	left: 100%;
 	margin-left: -370px;
 	width: 350px;
-	top: 0px;
+	top: 30px;
 }
 
 div.toast {
@@ -1615,6 +1628,7 @@ div.progress_bar_label.first_half {
 div.progress_bar_label.second_half {
 	z-index: 3;
 	color: var(--light);
+	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
 }
 
 /* Arrow Boxes */
@@ -1777,6 +1791,10 @@ div.sel_dialog_scrollarea {
 	user-select: none;
 	-moz-user-select: none;
 	-webkit-user-select: none;
+}
+
+div.sel_dialog_scrollarea.nudgeheight {
+	max-height: 250px; 
 }
 
 .sel_dialog_group {
