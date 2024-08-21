@@ -2,7 +2,7 @@
 
 var SingleSelect = {
 	
-	maxMenuItems: 2000,
+	maxMenuItems: 1000,
 	
 	init: function(sel) {
 		// initialize all single-selects based on selector
@@ -56,7 +56,10 @@ var SingleSelect = {
 					html += '<input type="text" id="fe_sel_dialog_search" class="sel_dialog_search" autocomplete="off" value=""/>';
 					html += '<div class="sel_dialog_search_icon"><i class="mdi mdi-magnify"></i></div>';
 				html += '</div>';
-				html += '<div id="d_sel_dialog_scrollarea" class="sel_dialog_scrollarea">';
+				html += '<div id="d_sel_dialog_scrollarea" class="sel_dialog_scrollarea';
+				if ($this.data('nudgeheight')) html += ' nudgeheight';
+				html += '">';
+				
 				for (var idx = 0, len = self.options.length; idx < len; idx++) {
 					var opt = self.options[idx];
 					
