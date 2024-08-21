@@ -267,17 +267,17 @@ var app = {
 		var timer = null;
 		$('#toaster').prepend( $toast );
 		
-		$toast.show(250);
+		$toast.fadeIn(250);
 		$toast.on('click', function() {
 			if (timer) clearTimeout(timer);
-			$toast.hide( 250, function() { $(this).remove(); } );
+			$toast.fadeOut( 250, function() { $(this).remove(); } );
 			if (loc) Nav.go(loc);
 		} );
 		
 		if ((type == 'success') || (type == 'info') || lifetime) {
 			if (!lifetime) lifetime = 8;
 			timer = setTimeout( function() {
-				$toast.hide( 500, function() { $(this).remove(); } );
+				$toast.fadeOut( 500, function() { $(this).remove(); } );
 			}, lifetime * 1000 );
 		}
 	},
