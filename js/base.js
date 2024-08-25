@@ -456,7 +456,6 @@ var app = {
 		var icon = '';
 		
 		this.setPref('theme', theme);
-		if (this.onThemeChange) this.onThemeChange(theme);
 		
 		switch (theme) {
 			case 'light': icon = 'weather-sunny'; break;
@@ -468,6 +467,8 @@ var app = {
 			if (window.matchMedia('(prefers-color-scheme: dark)').matches) theme = 'dark';
 			else theme = 'light';
 		}
+		
+		if (this.onThemeChange) this.onThemeChange(theme);
 		
 		if (theme == 'dark') {
 			$('body').addClass('dark');
