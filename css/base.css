@@ -656,7 +656,6 @@ div.toast {
 div.toast > i {
 	display: block;
 	position: absolute;
-	overflow: hidden;
 	left: 20px;
 	top: 50%;
 	margin-top: -10px;
@@ -674,17 +673,22 @@ div.toast > span {
 	margin-left: 35px;
 }
 
-div.toast.success { color:#0a0; background-color:#cfc; }
-div.toast.warning { color:#990; background-color:#ffc; }
-div.toast.error { color:#c00; background-color:#fee; }
-div.toast.critical { color:#c0c; background-color:#fef; }
-div.toast.info { color:#0aa; background-color:#cff; }
+div.toast {
+	color: #fff;
+	text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.5);
+}
 
-body.dark div.toast.success { color:#0c0; background-color:#050; }
-body.dark div.toast.warning { color:#cc0; background-color:#550; }
-body.dark div.toast.error { color:#f33; background-color:#300; }
-body.dark div.toast.critical { color:#f3f; background-color:#404; }
-body.dark div.toast.info { color:#0cc; background-color:#045; }
+div.toast.success { background: #44bb44; }
+div.toast.warning { background: #bbbb44; }
+div.toast.error { background: var(--red); }
+div.toast.critical { background: #bb44bb; }
+div.toast.info { background: #5890db; }
+
+body.dark div.toast.success { background: rgb(20, 128, 20); }
+body.dark div.toast.warning { background: rgb(128, 128, 20); }
+body.dark div.toast.error { background-color:var(--red); }
+body.dark div.toast.critical { background: rgb(128, 20, 128); }
+body.dark div.toast.info { background: rgb(28, 84, 160); }
 
 /* Message Banner */
 
@@ -736,17 +740,32 @@ div.message.inline > div.message_inner {
 	cursor: default;
 }
 
-div.message.success { color:#0a0; background-color:#cfc; }
-div.message.warning { color:#990; background-color:#ffc; }
-div.message.error { color:#c00; background-color:#fee; }
-div.message.critical { color:#c0c; background-color:#fef; }
-div.message.abort { color:#c00; background-color:#fee; }
+div.message {
+	color: #fff;
+	text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.5);
+}
 
-body.dark div.message.success { color:#0c0; background-color:#050; }
-body.dark div.message.warning { color:#cc0; background-color:#550; }
-body.dark div.message.error { color:#f33; background-color:#300; }
-body.dark div.message.critical { color:#f3f; background-color:#404; }
-body.dark div.message.abort { color:#f33; background-color:#300; }
+div.message.success { background: #44bb44; }
+div.message.warning { background: #bbbb44; }
+div.message.error { background: var(--red); }
+div.message.critical { background: #bb44bb; }
+div.message.abort { background: var(--red); }
+div.message.info { background: #5890db; }
+
+body.dark div.message.success { background: rgb(20, 128, 20); }
+body.dark div.message.warning { background: rgb(128, 128, 20); }
+body.dark div.message.error { background-color:var(--red); }
+body.dark div.message.critical { background: rgb(128, 20, 128); }
+body.dark div.message.abort { background-color:var(--red); }
+body.dark div.message.info { background: rgb(28, 84, 160); }
+
+div.message a {
+	color: #fff !important;
+}
+div.message a:hover {
+	color: #fff !important;
+	text-decoration: underline;
+}
 
 .invalid {
 	border-color: var(--red-half) !important;
@@ -959,11 +978,22 @@ body.dark .button.primary {
 	font-size: 12px;
 }
 
+.button.icon {
+	padding: 0px 8px 0px 8px;
+}
+
 .button i.mdi:before {
 	transform: scale(1.20);
 }
 .button i.mdi {
 	padding-right: 1px;
+}
+
+.button.icon i.mdi:before {
+	transform: scale(1.4);
+}
+.button.icon i.mdi {
+	padding-right: 0px;
 }
 
 /* Form Grid */
@@ -1063,6 +1093,7 @@ body.dark .button.primary {
 	padding-left: 4px;
 	border: 1px solid var(--border-color);
 	font-size: 13px;
+	tab-size: 4;
 	color: var(--body-text-color);
 	transition: 0.2s ease border-color;
 	resize: vertical;
@@ -2294,14 +2325,14 @@ body.dark .color_label {
 .color_label.blue { background: #5890db; }
 .color_label.green { background: #44bb44; }
 .color_label.yellow { background: #bbbb44; }
-.color_label.red { background: #bb4444; }
+.color_label.red { background: var(--red); }
 .color_label.purple { background: #bb44bb; }
 .color_label.gray { background: #aaaaaa; }
 
 body.dark .color_label.blue { background: rgb(28, 84, 160); }
 body.dark .color_label.green { background: rgb(20, 128, 20); }
 body.dark .color_label.yellow { background: rgb(128, 128, 20); }
-body.dark .color_label.red { background: rgb(128, 20, 20); }
+body.dark .color_label.red { background: var(--red); }
 body.dark .color_label.purple { background: rgb(128, 20, 128); }
 body.dark .color_label.gray { background: rgb(110, 110, 110); }
 
@@ -2310,6 +2341,10 @@ body.dark .color_label.gray { background: rgb(110, 110, 110); }
 }
 .color_label.linky:hover {
 	text-decoration: underline;
+}
+
+.color_label > i.mdi:before {
+	transform: scale(1.2);
 }
 
 /* Simple Horizontal Grid */
