@@ -154,6 +154,92 @@ var SingleSelect = {
 			}); // mouseup
 			
 		}); // forach elem
+	},
+	
+	popupQuickMenu: function(opts) {
+		// show popup menu on custom element
+		// opts: { elem, title, items, value, callback }
+		// item: { id, title, icon }
+		var $elem = $(opts.elem);
+		var items = opts.items;
+		var callback = opts.callback;
+		var html = '';
+		
+		html += '<div class="sel_dialog_label">' + opts.title + '</div>';
+		if (opts.search) {
+			html += '<div class="sel_dialog_search_container">';
+				html += '<input type="text" id="fe_sel_dialog_search" class="sel_dialog_search" autocomplete="off" value=""/>';
+				html += '<div class="sel_dialog_search_icon"><i class="mdi mdi-magnify"></i></div>';
+			html += '</div>';
+		}
+		html += '<div id="d_sel_dialog_scrollarea" class="sel_dialog_scrollarea">';
+		for (var idy = 0, ley = items.length; idy < ley; idy++) {
+			var item = items[idy];
+			var sel = (item.id == opts.value);
+			html += '<div class="sel_dialog_item check ' + (sel ? 'selected' : '') + ' shrinkwrap" data-value="' + item.id + '">';
+			if (item.icon) html += '<i class="mdi mdi-' + item.icon + '">&nbsp;</i>';
+			html += '<span>' + item.title + '</span>';
+			html += '<div class="sel_dialog_item_check"><i class="mdi mdi-check"></i></div>';
+			html += '</div>';
+		}
+		html += '</div>';
+		
+		Popover.attach( $elem, '<div style="padding:15px;">' + html + '</div>', true );
+		
+		$('#d_sel_dialog_scrollarea > div.sel_dialog_item').on('mouseup', function() {
+			// select item, close dialog and update state
+			var $item = $(this);
+			var value = $item.data('value');
+			
+			Popover.detach();
+			callback(value);
+		}); // mouseup
+		
+		Popover.onDetach = function() {
+			$elem.removeClass('popped');
+		};
+		
+		$elem.addClass('popped');
+		
+		if (opts.search) {
+			// setup input field
+			var $input = $('#fe_sel_dialog_search');
+			$input.focus();
+			
+			// setup keyboard handlers
+			$input.on('keyup', function(event) {
+				// refresh list on every keypress
+				var value = $input.val().toLowerCase();
+				
+				if (value.length) $('#d_sel_dialog_scrollarea > div.sel_dialog_group').hide();
+				else $('#d_sel_dialog_scrollarea > div.sel_dialog_group').show();
+				
+				$('#d_sel_dialog_scrollarea > div.sel_dialog_item').each( function() {
+					var $item = $(this);
+					var text = $item.find('> span').html().toLowerCase();
+					if (!value.length || (text.indexOf(value) > -1)) {
+						$item.addClass('match').show();
+					}
+					else {
+						$item.removeClass('match').hide();
+					}
+				} );
+				Popover.reposition();
+			});
+			$input.on('keydown', function(event) {
+				// capture enter key
+				var value = $input.val().toLowerCase();
+				if ((event.keyCode == 13) && value.length) {
+					// enter key with a value typed into the search box
+					event.preventDefault();
+					event.stopPropagation();
+					
+					var mup = jQuery.Event( "mouseup" );
+					mup.metaKey = true; // bypass `hold` feature
+					$('#d_sel_dialog_scrollarea > div.sel_dialog_item.match').slice(0, 1).trigger(mup);
+				}
+			});
+		} // opts.search
 	}
 	
 }; // SingleSelect
@@ -249,7 +335,14 @@ var MultiSelect = {
 						html += '<div class="sel_dialog_group">' + opt.getAttribute('data-group') + '</div>';
 					}
 					
-					html += '<div class="sel_dialog_item check ' + (opt.selected ? 'selected' : '') + '" data-value="' + opt.value + '">';
+					html += '<div class="sel_dialog_item check ' + (opt.selected ? 'selected' : '');
+					
+					if (opt.getAttribute && opt.getAttribute('data-class')) {
+						html += ' ' + opt.getAttribute('data-class') + '';
+					}
+					if ($this.data('shrinkwrap')) html += ' shrinkwrap';
+					
+					html += '" data-value="' + opt.value + '">';
 					if (opt.getAttribute && opt.getAttribute('data-icon')) {
 						html += '<i class="mdi mdi-' + opt.getAttribute('data-icon') + '">&nbsp;</i>';
 					}
@@ -404,6 +497,98 @@ var MultiSelect = {
 			}); // mouseup
 			
 		}); // foreach elem
+	},
+	
+	popupQuickMenu: function(opts) {
+		// show popup menu on custom element
+		// opts: { elem, title, items, values, callback }
+		// item: { id, title, icon }
+		var $elem = $(opts.elem);
+		var items = opts.items;
+		var callback = opts.callback;
+		var html = '';
+		
+		html += '<div class="sel_dialog_label">' + opts.title + '</div>';
+		if (opts.search) {
+			html += '<div class="sel_dialog_search_container">';
+				html += '<input type="text" id="fe_sel_dialog_search" class="sel_dialog_search" autocomplete="off" value=""/>';
+				html += '<div class="sel_dialog_search_icon"><i class="mdi mdi-magnify"></i></div>';
+			html += '</div>';
+		}
+		html += '<div id="d_sel_dialog_scrollarea" class="sel_dialog_scrollarea">';
+		for (var idy = 0, ley = items.length; idy < ley; idy++) {
+			var item = items[idy];
+			var sel = opts.values.includes(item.id);
+			html += '<div class="sel_dialog_item check ' + (sel ? 'selected' : '') + ' shrinkwrap" data-value="' + item.id + '">';
+			if (item.icon) html += '<i class="mdi mdi-' + item.icon + '">&nbsp;</i>';
+			html += '<span>' + item.title + '</span>';
+			html += '<div class="sel_dialog_item_check"><i class="mdi mdi-check"></i></div>';
+			html += '</div>';
+		}
+		html += '</div>';
+		
+		Popover.attach( $elem, '<div style="padding:15px;">' + html + '</div>', true );
+		
+		$('#d_sel_dialog_scrollarea > div.sel_dialog_item').on('mouseup', function() {
+			// select item, close dialog and update state
+			var $item = $(this);
+			if ($item.hasClass('selected')) $item.removeClass('selected');
+			else $item.addClass('selected');
+			
+			var values = [];
+			$('#d_sel_dialog_scrollarea > div.sel_dialog_item.selected').each( function() {
+				values.push( $(this).data('value') );
+			});
+			
+			Popover.detach();
+			callback(values);
+		}); // mouseup
+		
+		Popover.onDetach = function() {
+			$elem.removeClass('popped');
+		};
+		
+		$elem.addClass('popped');
+		
+		if (opts.search) {
+			// setup input field
+			var $input = $('#fe_sel_dialog_search');
+			$input.focus();
+			
+			// setup keyboard handlers
+			$input.on('keyup', function(event) {
+				// refresh list on every keypress
+				var value = $input.val().toLowerCase();
+				
+				if (value.length) $('#d_sel_dialog_scrollarea > div.sel_dialog_group').hide();
+				else $('#d_sel_dialog_scrollarea > div.sel_dialog_group').show();
+				
+				$('#d_sel_dialog_scrollarea > div.sel_dialog_item').each( function() {
+					var $item = $(this);
+					var text = $item.find('> span').html().toLowerCase();
+					if (!value.length || (text.indexOf(value) > -1)) {
+						$item.addClass('match').show();
+					}
+					else {
+						$item.removeClass('match').hide();
+					}
+				} );
+				Popover.reposition();
+			});
+			$input.on('keydown', function(event) {
+				// capture enter key
+				var value = $input.val().toLowerCase();
+				if ((event.keyCode == 13) && value.length) {
+					// enter key with a value typed into the search box
+					event.preventDefault();
+					event.stopPropagation();
+					
+					var mup = jQuery.Event( "mouseup" );
+					mup.metaKey = true; // bypass `hold` feature
+					$('#d_sel_dialog_scrollarea > div.sel_dialog_item.match').slice(0, 1).trigger(mup);
+				}
+			});
+		} // opts.search
 	}
 	
 }; // MultiSelect

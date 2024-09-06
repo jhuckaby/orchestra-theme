@@ -8,6 +8,7 @@ var Popover = {
 		if (this.enabled) this.detach();
 		var $elem = $(elem);
 		var rect = $elem[0].getBoundingClientRect();
+		var win = get_inner_window_size();
 		
 		var $box = $('<div class="arrow_box"></div>').html(html).css({
 			left: '-9999px'
@@ -34,7 +35,19 @@ var Popover = {
 			}
 			
 			if (shrinkwrap) {
-				$box.css('left', '' + Math.floor( (rect.left + (rect.width / 2)) - (width / 2) ) + 'px');
+				var left = Math.floor( (rect.left + (rect.width / 2)) - (width / 2) );
+				var adj = 0;
+				if (left < 20) {
+					adj = 20 - left;
+					left += adj;
+				}
+				else if (left + width > win.width - 20) {
+					adj = (win.width - 20) - (left + width);
+					left += adj;
+					adj++;
+				}
+				$box.css('left', '' + left + 'px');
+				if (adj) $box.css('--arrow-left', 'calc(50% - ' + adj + 'px)');
 			}
 			else $box.css('left', '' + Math.floor( rect.left ) + 'px');
 			

@@ -373,7 +373,7 @@ div.section_title.expanded > i.ctrl {
 
 body.dark .section_item.active {
 	color: white;
-	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+	text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.5);
 }
 body.dark .section_item.active:hover {
 	color: white;
@@ -1695,7 +1695,7 @@ body.dark .arrow_box {
 	box-shadow: 15px 15px 40px var(--background-color);
 }
 .arrow_box:after, .arrow_box:before {
-	left: 50%;
+	left: var(--arrow-left, 50%);
 	border: solid transparent;
 	content: " ";
 	height: 0;
@@ -1872,7 +1872,7 @@ div.sel_dialog_scrollarea.nudgeheight {
 	font-weight: bold;
 }
 .sel_dialog_item.shrinkwrap {
-	max-width: 25vw;
+	max-width: min(calc(100vw - 90px), 500px);
 }
 /* .sel_dialog_item.selected:hover { 
 	color: var(--body-text-color);
