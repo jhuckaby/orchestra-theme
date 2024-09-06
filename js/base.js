@@ -11,6 +11,7 @@ var app = {
 	base_api_url: '/api',
 	plain_text_post: false,
 	prefs: {},
+	lastClick: {},
 	
 	init: function() {
 		// override this in your app.js
@@ -162,7 +163,7 @@ var app = {
 	
 	isAdmin: function() {
 		// return true if user is logged in and admin, false otherwise
-		return( app.user && app.user.privileges && app.user.privileges.admin );
+		return !!( app.user && app.user.privileges && app.user.privileges.admin );
 	},
 	
 	handleResize: function() {
@@ -633,6 +634,10 @@ if (!window.assert) window.assert = function(fact, msg) {
 $(document).ready(function() {
 	app.init();
 });
+
+window.addEventListener( "click", function(e) {
+	app.lastClick = { altKey: e.altKey, ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, metaKey: e.metaKey };
+}, true );
 
 window.addEventListener( "keydown", function(event) {
 	if (Popover.enabled) Popover.handleKeyDown(event);

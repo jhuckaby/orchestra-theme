@@ -179,6 +179,11 @@ var Dialog = {
 		
 		// special mode for key capture
 		Dialog.active = 'confirmation';
+		
+		setTimeout( function() {
+			// hold alt/opt key to immediately click default button
+			if (app.lastClick.altKey) return Dialog.confirm_click(true);
+		}, 1 );
 	},
 	
 	confirmDanger: function(title, html, ok_btn_label, callback) {
@@ -199,6 +204,11 @@ var Dialog = {
 		
 		// special mode for key capture
 		Dialog.active = 'confirmation';
+		
+		setTimeout( function() {
+			// hold alt/opt key to immediately click default button
+			if (app.lastClick.altKey) return Dialog.confirm_click(true);
+		}, 1 );
 	},
 	
 	confirm_click: function(result) {

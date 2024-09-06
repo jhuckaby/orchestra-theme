@@ -1616,7 +1616,7 @@ window.PageManager = class PageManager {
 		var $sect = $(sect);
 		if ($sect.hasClass('expanded')) {
 			$sect.removeClass('expanded');
-			$sect.next().animate({
+			$sect.next().stop().animate({
 				scrollTop: $sect.next()[0].scrollHeight,
 				height: 0
 			}, {
@@ -1631,7 +1631,7 @@ window.PageManager = class PageManager {
 		var $sect = $(sect);
 		if (!$sect.hasClass('expanded')) {
 			$sect.addClass('expanded');
-			$sect.next().animate({
+			$sect.next().stop().animate({
 				scrollTop: 0,
 				height: $sect.next()[0].scrollHeight
 			}, {
