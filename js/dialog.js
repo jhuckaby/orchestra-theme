@@ -172,8 +172,8 @@ var Dialog = {
 		else inner_html += '<div class="confirm_container">'+html+'</div>';
 		
 		var buttons_html = "";
-		buttons_html += '<div class="button" onMouseUp="Dialog.confirm_click(false)">Cancel</div>';
-		buttons_html += '<div class="button primary" onMouseUp="Dialog.confirm_click(true)">'+ok_btn_label+'</div>';
+		buttons_html += '<div id="btn_dialog_cancel" class="button" onMouseUp="Dialog.confirm_click(false)">Cancel</div>';
+		buttons_html += '<div id="btn_dialog_confirm" class="button primary" onMouseUp="Dialog.confirm_click(true)">'+ok_btn_label+'</div>';
 		
 		this.showSimpleDialog( title, inner_html, buttons_html );
 		
@@ -197,8 +197,8 @@ var Dialog = {
 		else inner_html += '<div class="confirm_container">'+html+'</div>';
 		
 		var buttons_html = "";
-		buttons_html += '<div class="button" onMouseUp="Dialog.confirm_click(false)">Cancel</div>';
-		buttons_html += '<div class="button delete" onMouseUp="Dialog.confirm_click(true)">'+ok_btn_label+'</div>';
+		buttons_html += '<div id="btn_dialog_cancel" class="button" onMouseUp="Dialog.confirm_click(false)">Cancel</div>';
+		buttons_html += '<div id="btn_dialog_confirm" class="button delete" onMouseUp="Dialog.confirm_click(true)">'+ok_btn_label+'</div>';
 		
 		this.showSimpleDialog( '<span style="color:var(--red)">' + title + '</span>', inner_html, buttons_html );
 		
