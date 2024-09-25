@@ -234,7 +234,7 @@ div.sidebar {
 	/* background: linear-gradient(90deg, rgb(232,232,232) 0%, rgb(248,248,248) 100%); */
 	/* box-shadow: 0px 0px 80px var(--border-color); */
 	box-shadow: 2px 2px 8px var(--shadow-color);
-	z-index: 3;
+	z-index: 103;
 }
 body.dark div.sidebar {
 	box-shadow: none;
@@ -416,7 +416,7 @@ body.sidebar div.header {
 #d_sidebar_toggle {
 	display: none;
 	position: fixed;
-	z-index: 2;
+	z-index: 102;
 	left: -1px;
 	top: -1px;
 	width: 40px;
@@ -1029,7 +1029,7 @@ body.dark .button.primary {
 	justify-self: end;
 	/* text-align: right; */
 	color: var(--label-color);
-	/* font-weight: bold; */
+	font-weight: bold;
 	font-style: italic;
 	
 	overflow: hidden;
@@ -1047,7 +1047,7 @@ body.dark .button.primary {
 .form_row > div.fr_caption {
 	grid-area: d;
 	font-size: 11px;
-	margin-top: 6px;
+	margin-top: 4px;
 	color: var(--label-color);
 }
 
@@ -1578,7 +1578,7 @@ body.dark #dialog, body.dark .dialog {
 
 .confirm_container {
 	max-width: 450px; 
-	padding: 10px 0 20px 0;
+	padding: 20px 0 20px 0;
 	font-size: 13px; 
 	line-height: 18px;
 	color: var(--body-text-color);
@@ -1656,6 +1656,7 @@ div.progress_bar_label {
 	top: 0;
 	line-height: 18px;
 	font-size: 12px;
+	font-weight: bold;
 	text-align: center;
 	cursor: default;
 }
@@ -1667,6 +1668,10 @@ div.progress_bar_label.second_half {
 	z-index: 3;
 	color: var(--light);
 	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
+}
+
+div.progress_bar_container.indeterminate div.progress_bar_label {
+	display: none;
 }
 
 /* Arrow Boxes */
@@ -1771,6 +1776,23 @@ div.sel_dialog_label {
 	margin-bottom: 10px;
 	cursor: default;
 }
+div.sel_dialog_label.danger {
+	color: var(--red);
+}
+
+div.sel_all_none {
+	float: right;
+	font-weight: normal;
+	text-transform: none;
+	cursor: pointer;
+	
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+}
+div.sel_all_none:hover {
+	color: var(--theme-color);
+}
 
 div.sel_dialog_search_container {
 	position: relative;
@@ -1801,6 +1823,9 @@ input.sel_dialog_search {
 }
 input.sel_dialog_search:focus + div.sel_dialog_search_icon {
 	color: var(--theme-color);
+}
+input.sel_dialog_search:focus + div.sel_dialog_search_icon.danger {
+	color: var(--red);
 }
 
 div.sel_dialog_search_icon {
