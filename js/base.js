@@ -304,6 +304,10 @@ var app = {
 				opts.headers['X-Session-ID'] = app.getPref('session_id');
 			}
 			
+			// default 10 sec timeout
+			var timeout = opts.timeout || 10000;
+			delete opts.timeout;
+			
 			var timed_out = false;
 			var timer = setTimeout( function() {
 				timed_out = true;
@@ -313,7 +317,7 @@ var app = {
 				
 				if (errorCallback) errorCallback({ code: 'http', description: '' + (err.message || err) });
 				else app.doError( "HTTP Error: " + err.message || err );
-			}, 1000 * 10 );
+			}, timeout );
 			
 			window.fetch( url, opts )
 				.then( function(res) {
