@@ -321,7 +321,13 @@ var MultiSelect = {
 				var last_sel_idx = -1;
 				if ($ms.hasClass('disabled')) return;
 				
-				html += '<div class="sel_dialog_label">' + ($this.attr('title') || 'Select Items') + '</div>';
+				html += '<div class="sel_dialog_label">' + ($this.attr('title') || 'Select Items');
+				if ($this.data('select-all')) {
+					var is_all_sel = !!(find_objects(self.options, { selected: true }).length == self.options.length);
+					html += '<div class="sel_all_none">' + (is_all_sel ? 'Select None' : 'Select All') + '</div>';
+				}
+				html += '</div>';
+				
 				html += '<div class="sel_dialog_search_container">';
 					html += '<input type="text" id="fe_sel_dialog_search" class="sel_dialog_search" autocomplete="off" value=""/>';
 					html += '<div class="sel_dialog_search_icon"><i class="mdi mdi-magnify"></i></div>';
@@ -405,6 +411,12 @@ var MultiSelect = {
 					
 					$this.trigger('change');
 					last_sel_idx = new_sel_idx;
+					
+					// update select-all-none display
+					if ($this.data('select-all')) {
+						var is_all_sel = !!(find_objects(self.options, { selected: true }).length == self.options.length);
+						$('div.arrow_box div.sel_all_none').html( is_all_sel ? 'Select None' : 'Select All' );
+					}
 				}); // mouseup
 				
 				if ($this.data('hold')) {
@@ -421,6 +433,22 @@ var MultiSelect = {
 					});
 					$('#btn_sel_dialog_add').on('mouseup', function() { Popover.detach(); });
 				} // hold
+				
+				// attach click handler for select-all-none
+				$('div.arrow_box div.sel_all_none').on('mouseup', function(event) {
+					var is_all_sel = !!(find_objects(self.options, { selected: true }).length == self.options.length);
+					var new_sel_state = !is_all_sel;
+					
+					$('#d_sel_dialog_scrollarea > div.sel_dialog_item').each( function(idx) {
+						var $item = $(this);
+						var opt = self.options[idx];
+						opt.selected = new_sel_state;
+						if (new_sel_state) $item.addClass('selected'); else $item.removeClass('selected');
+					} );
+					
+					$this.trigger('change');
+					$(this).html( is_all_sel ? 'Select All' : 'Select None' );
+				});
 				
 				// setup input field
 				var $input = $('#fe_sel_dialog_search');
@@ -650,7 +678,7 @@ var TextSelect = {
 				html += '<div class="sel_dialog_label">' + ($this.attr('title') || 'Add New Item') + '</div>';
 				html += '<div class="sel_dialog_search_container">';
 					html += '<input type="text" id="fe_sel_dialog_text" class="sel_dialog_search" style="border-radius:2px;" autocomplete="off" value=""/>';
-					html += '<div class="sel_dialog_search_icon"><i class="mdi ' + ($this.attr('icon') || 'mdi-plus') + '"></i></div>';
+					html += '<div class="sel_dialog_search_icon"><i class="mdi mdi-' + ($this.attr('icon') || 'plus') + '"></i></div>';
 				html += '</div>';
 				
 				if ($this.attr('description')) {
@@ -706,6 +734,65 @@ var TextSelect = {
 			}); // mouseup
 			
 		}); // forach elem
+	},
+	
+	popupQuickMenu: function(opts) {
+		// show popup menu on custom element
+		// opts: { elem, title, icon?, description?, confirm?, trim?, lower?, validate?, callback }
+		var $elem = $(opts.elem);
+		var callback = opts.callback;
+		var html = '';
+		
+		html += '<div class="sel_dialog_label ' + (opts.danger ? 'danger' : '') +'">' + (opts.title || 'Add New Item') + '</div>';
+		html += '<div class="sel_dialog_search_container">';
+			html += '<input type="text" id="fe_sel_dialog_text" class="sel_dialog_search" style="border-radius:2px;" autocomplete="off" value=""/>';
+			html += '<div class="sel_dialog_search_icon ' + (opts.danger ? 'danger' : '') + '"><i class="mdi mdi-' + (opts.icon || 'plus') + '"></i></div>';
+		html += '</div>';
+		
+		if (opts.description) {
+			html += '<div class="sel_dialog_caption">' + opts.description + '</div>';
+		}
+		
+		html += '<div class="sel_dialog_button_container">';
+			html += '<div class="button" id="btn_sel_dialog_cancel">Cancel</div>';
+			html += '<div class="button primary ' + (opts.danger ? 'delete' : '') + '" id="btn_sel_dialog_add">' + (opts.confirm || 'Add Item') + '</div>';
+		html += '</div>';
+		
+		Popover.attach( $elem, '<div style="padding:15px;">' + html + '</div>', true );
+		
+		var doAdd = function() {
+			app.clearError();
+			
+			var value = $('#fe_sel_dialog_text').val().replace(/[\"\']+/g, '');
+			if (opts.trim) value = value.trim();
+			if (opts.lower) value = value.toLowerCase();
+			if (opts.validate && !value.match( new RegExp(opts.validate) )) {
+				return app.badField('#fe_sel_dialog_text');
+			}
+			
+			if (!value.length) {
+				Popover.detach();
+				return;
+			}
+			
+			Popover.detach();
+			callback(value);
+		}; // doAdd
+		
+		$('#btn_sel_dialog_cancel').on('mouseup', function() { Popover.detach(); });
+		$('#btn_sel_dialog_add').on('mouseup', function() { doAdd(); });
+		
+		var $input = $('#fe_sel_dialog_text').focus().on('keydown', function(event) {
+			// capture enter key
+			if ((event.keyCode == 13) && this.value.length) {
+				event.preventDefault();
+				event.stopPropagation();
+				doAdd();
+			}
+		});
+		
+		$elem.addClass('popped');
+		Popover.onDetach = function() { $elem.removeClass('popped'); };
 	}
 	
 }; // TextSelect
