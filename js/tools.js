@@ -937,6 +937,11 @@ function stableSerialize(node) {
 	else return JSON.stringify(node);
 };
 
+function stablePrettyStringify(node) {
+	// generate stable (alphabetized keys) pretty-printed json
+	return JSON.stringify( JSON.parse( stableSerialize(node) ), null, "\t" );
+};
+
 // Debounce Function Generator
 // Fires once immediately, then never again until freq ms
 function debounce(func, freq) {
