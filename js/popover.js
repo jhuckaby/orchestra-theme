@@ -25,7 +25,7 @@ var Popover = {
 			var width = $box.width();
 			var height = $box.height();
 			
-			if (height + 10 < rect.top) {
+			if (height + 16 < rect.top) {
 				$box.css('top', '' + Math.floor( rect.top - height - 16 ) + 'px');
 				$box.addClass('bottom');
 			}
