@@ -251,6 +251,7 @@ var MultiSelect = {
 		$(sel).each( function() {
 			var self = this;
 			var $this = $(this);
+			$this.css('display', 'none');
 			
 			var $ms = $('<div class="multiselect multi"></div>');
 			if ($this.data('compact')) $ms.addClass('compact');
