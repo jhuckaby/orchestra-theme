@@ -764,7 +764,7 @@ window.Page = class Page {
 	}
 	
 	getCompactTable(args, callback) {
-		// get html for sorted table (fake pagination, for looks only)
+		// get html for compact table (sans pagination)
 		var html = '';
 		
 		var rows = args.rows;
@@ -802,6 +802,55 @@ window.Page = class Page {
 		html += '</table>';
 		if (args.below) html += args.below;
 		html += '</div>';
+		
+		return html;
+	}
+	
+	getCompactGrid(args, callback) {
+		// get html for compact grid table (sans pagination)
+		// args: { rows, cols, data_type, attribs?, class?, style?, grid_template_columns?, empty_msg?, always_append_empty_msg?, below? }
+		var html = '';
+		var rows = args.rows;
+		var cols = args.cols;
+		var data_type = args.data_type;
+		
+		html += '<div class="data_table_compact" style="margin-top:5px;">';
+		
+		var tattrs = args.attribs || {};
+		if (args.class) tattrs.class = args.class;
+		if (!tattrs.class) {
+			tattrs.class = 'data_grid';
+			if (data_type.match(/^\w+$/)) tattrs.class += ' ' + data_type + '_grid';
+		}
+		if (!tattrs.style) tattrs.style = '';
+		
+		if (args.grid_template_columns) tattrs.style += 'grid-template-columns: ' + args.grid_template_columns + ';';
+		else tattrs.style += 'grid-template-columns: repeat(' + cols.length + ', auto);';
+		
+		html += '<div ' + compose_attribs(tattrs) + '>';
+		
+		html += '<ul class="grid_row_header"><div>' + cols.join('</div><div>') + '</div></ul>';
+		
+		for (var idx = 0, len = rows.length; idx < len; idx++) {
+			var row = rows[idx];
+			var tds = callback(row, idx);
+			if (tds.insertAbove) html += tds.insertAbove;
+			html += '<ul class="grid_row ' + (tds.className || '') + '"' + (row.id ? (' data-id="'+row.id+'"') : '') + '>';
+			html += '<div>' + tds.join('</div><div>') + '</div>';
+			html += '</ul>';
+		} // foreach row
+		
+		if (!rows.length || (args.empty_msg && args.always_append_empty_msg)) {
+			html += '<ul class="grid_row_empty"><div style="grid-column-start: span ' + cols.length + ';">';
+			if (args.empty_msg) html += args.empty_msg;
+			else html += 'No '+pluralize(data_type)+' found.';
+			html += '</div></ul>';
+		}
+		
+		if (args.below) html += args.below;
+		
+		html += '</div>'; // grid
+		html += '</div>'; // data_table_compact
 		
 		return html;
 	}
@@ -1676,13 +1725,12 @@ var Nav = {
 		if (!anchor) anchor = config.DefaultPage || 'Main';
 		
 		var full_anchor = '' + anchor;
-		var sub_anchor = '';
+		var sub = '';
 		
-		// anchor = anchor.replace(/\%7C/, '|');
-		if (anchor.match(/\|(\w+)$/)) {
-			// inline section anchor after article name, pipe delimited
-			sub_anchor = RegExp.$1.toLowerCase();
-			anchor = anchor.replace(/\|(\w+)$/, '');
+		if (anchor.match(/^(.+?)\/(.+)$/)) {
+			// inline section anchor after page name, slash delimited
+			anchor = RegExp.$1;
+			sub = RegExp.$2;
 		}
 		
 		if ((anchor != this.loc) && !anchor.match(/^_/)) { // ignore doxter anchors
@@ -1699,6 +1747,7 @@ var Nav = {
 				parts = full_anchor.split(/\//);
 				page_name = parts[0];
 				page_args = {};
+				if (sub) page_args.sub = sub;
 			}
 			
 			Debug.trace('nav', "Calling page: " + page_name + ": " + JSON.stringify(page_args));
@@ -1718,12 +1767,12 @@ var Nav = {
 				this.go( this.loc );
 			}
 		}
-		else if (sub_anchor != this.sub_anchor) {
-			Debug.trace('nav', "Caught sub-anchor: " + sub_anchor);
-			$P().gosub( sub_anchor );
+		else if (sub != this.sub_anchor) {
+			Debug.trace('nav', "Caught sub-anchor nav: " + sub);
+			$P().gosub( sub );
 		} // sub-anchor changed
 		
-		this.sub_anchor = sub_anchor;	
+		this.sub_anchor = sub;	
 	},
 	
 	go: function(anchor, force) {
@@ -1759,14 +1808,8 @@ var Nav = {
 		// return current page anchor
 		var parts = window.location.href.split(/\#/);
 		var anchor = parts[1] || '';
-		var sub_anchor = '';
 		
-		anchor = anchor.replace(/\%7C/, '|');
-		if (anchor.match(/\|(\w+)$/)) {
-			// inline section anchor after article name, pipe delimited
-			sub_anchor = RegExp.$1.toLowerCase();
-			anchor = anchor.replace(/\|(\w+)$/, '');
-		}
+		anchor = anchor.replace(/\/.+$/, '');
 		
 		return anchor;
 	}
