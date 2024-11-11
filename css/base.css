@@ -119,6 +119,7 @@ body.dark {
 	--link-color: rgb(145, 155, 170);
 	--label-color: rgb(145, 155, 170);
 	--icon-color: rgb(115, 115, 130);
+	--icon-color-half: rgba(115, 115, 130, 0.5);
 }
 
 :root:has(body.dark) {
@@ -968,6 +969,7 @@ body.dark .button:hover {
 body.dark .button.primary {
 	background: var(--theme-color);
 	color: rgba(255, 255, 255, 0.85);
+	text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.5);
 }
 
 .button.danger:hover {
@@ -1579,6 +1581,9 @@ body.dark #dialog, body.dark .dialog {
 
 .dialog_buttons > .button {
 	margin-left: 15px;
+}
+.dialog_buttons > .button:first-child {
+	margin-left: 0px;
 }
 
 .confirm_container {
