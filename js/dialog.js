@@ -159,6 +159,12 @@ var Dialog = {
 		html += '<div class="dialog_content">' + inner_html + '</div>';
 		html += '<div class="dialog_buttons">' + buttons_html + '</div>';
 		Dialog.show( html );
+		
+		// add hover tooltips to mobile_collapse buttons
+		$('.dialog_buttons .button.mobile_collapse').each( function() {
+			var $this = $(this);
+			$this.attr('title', $this.find('span').text() );
+		} );
 	},
 	
 	confirm: function(title, html, ok_btn_label, callback) {
@@ -222,6 +228,12 @@ var Dialog = {
 	
 	confirm_key: function(event) {
 		// handle keydown with active confirmation dialog
+		if ((this.active === 'editor') && (event.keyCode == 27)) {
+			// enable esc key for editor dialogs (codemirror)
+			Dialog.hide();
+			return;
+		}
+		
 		if (this.active !== 'confirmation') return;
 		if ((event.keyCode != 13) && (event.keyCode != 27)) return;
 		
