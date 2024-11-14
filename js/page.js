@@ -657,7 +657,10 @@ window.Page = class Page {
 			if (data_type.match(/^\w+$/)) tattrs.class += ' ' + data_type + '_grid';
 		}
 		if (!tattrs.style) tattrs.style = '';
-		tattrs.style += 'grid-template-columns: repeat(' + cols.length + ', auto);';
+		
+		if (args.grid_template_columns) tattrs.style += 'grid-template-columns: ' + args.grid_template_columns + ';';
+		else tattrs.style += 'grid-template-columns: repeat(' + cols.length + ', auto);';
+		
 		html += '<div ' + compose_attribs(tattrs) + '>';
 		
 		html += '<ul class="grid_row_header"><div>' + cols.join('</div><div>') + '</div></ul>';
@@ -917,7 +920,10 @@ window.Page = class Page {
 			if (data_type.match(/^\w+$/)) tattrs.class += ' ' + data_type + '_grid';
 		}
 		if (!tattrs.style) tattrs.style = '';
-		tattrs.style += 'grid-template-columns: repeat(' + cols.length + ', auto);';
+		
+		if (args.grid_template_columns) tattrs.style += 'grid-template-columns: ' + args.grid_template_columns + ';';
+		else tattrs.style += 'grid-template-columns: repeat(' + cols.length + ', auto);';
+		
 		html += '<div ' + compose_attribs(tattrs) + '>';
 		
 		html += '<ul class="grid_row_header"><div>' + cols.join('</div><div>') + '</div></ul>';
