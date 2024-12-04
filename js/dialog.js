@@ -170,15 +170,19 @@ var Dialog = {
 	confirm: function(title, html, ok_btn_label, callback) {
 		// show simple OK / Cancel dialog with custom text
 		// fires callback with true (OK) or false (Cancel)
-		if (!ok_btn_label) ok_btn_label = "OK";
+		if (!ok_btn_label) ok_btn_label = ['check-circle', "OK"];
 		this.confirm_callback = callback;
 		
 		var inner_html = "";
 		if (html.match(/^</)) inner_html = html;
 		else inner_html += '<div class="confirm_container">'+html+'</div>';
 		
+		if (isa_array(ok_btn_label)) {
+			ok_btn_label = '<i class="mdi mdi-' + ok_btn_label[0] + '">&nbsp;</i>' + ok_btn_label[1];
+		}
+		
 		var buttons_html = "";
-		buttons_html += '<div id="btn_dialog_cancel" class="button" onMouseUp="Dialog.confirm_click(false)">Cancel</div>';
+		buttons_html += '<div id="btn_dialog_cancel" class="button" onClick="Dialog.confirm_click(false)"><i class="mdi mdi-close-circle-outline">&nbsp;</i>Cancel</div>';
 		buttons_html += '<div id="btn_dialog_confirm" class="button primary" onMouseUp="Dialog.confirm_click(true)">'+ok_btn_label+'</div>';
 		
 		this.showSimpleDialog( title, inner_html, buttons_html );
@@ -195,15 +199,19 @@ var Dialog = {
 	confirmDanger: function(title, html, ok_btn_label, callback) {
 		// show simple OK / Cancel dialog with custom text
 		// fires callback with true (OK) or false (Cancel)
-		if (!ok_btn_label) ok_btn_label = "OK";
+		if (!ok_btn_label) ok_btn_label = ['check-circle', "OK"];
 		this.confirm_callback = callback;
 		
 		var inner_html = "";
 		if (html.match(/^</)) inner_html = html;
 		else inner_html += '<div class="confirm_container">'+html+'</div>';
 		
+		if (isa_array(ok_btn_label)) {
+			ok_btn_label = '<i class="mdi mdi-' + ok_btn_label[0] + '">&nbsp;</i>' + ok_btn_label[1];
+		}
+		
 		var buttons_html = "";
-		buttons_html += '<div id="btn_dialog_cancel" class="button" onMouseUp="Dialog.confirm_click(false)">Cancel</div>';
+		buttons_html += '<div id="btn_dialog_cancel" class="button" onMouseUp="Dialog.confirm_click(false)"><i class="mdi mdi-close-circle-outline">&nbsp;</i>Cancel</div>';
 		buttons_html += '<div id="btn_dialog_confirm" class="button delete" onMouseUp="Dialog.confirm_click(true)">'+ok_btn_label+'</div>';
 		
 		this.showSimpleDialog( '<span style="color:var(--red)">' + title + '</span>', inner_html, buttons_html );
