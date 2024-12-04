@@ -546,6 +546,11 @@ body.dark div.header_widget:hover {
 	border: 1px solid var(--theme-color-half);
 }
 
+div.header_widget.danger:hover, div.header_widget.danger.popped {
+	color: var(--red);
+	border: 1px solid var(--red-highlight) !important;
+}
+
 div.header_widget.red {
 	color: var(--red);
 	border: 1px solid var(--red-half) !important;
