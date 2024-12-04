@@ -258,6 +258,16 @@ var app = {
 			break;
 		}
 		
+		// prevent script injection
+		msg = encode_entities(msg);
+		
+		this.toast({ type, icon, msg, lifetime, loc });
+	},
+	
+	toast: function(args) {
+		// show toast notification given raw html
+		var { type, icon, msg, lifetime, loc } = args;
+		
 		var html = '';
 		html += '<div class="toast ' + type + '" style="display:none">';
 			html += '<i class="mdi mdi-' + icon + '"></i>';
