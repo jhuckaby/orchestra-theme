@@ -650,12 +650,15 @@ div.toast {
 	
 	margin-top: 20px;
 	
-	padding: 20px;
+	padding: 15px 20px 15px 20px;
 	border: 1px solid rgba(128, 128, 128, 0.2);
 	border-radius: 6px;
 	
 	font-size: 13px;
 	font-weight: bold;
+	
+	color: #fff;
+	text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.5);
 }
 
 div.toast > i {
@@ -678,11 +681,6 @@ div.toast > span {
 	margin-left: 35px;
 }
 
-div.toast {
-	color: #fff;
-	text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.5);
-}
-
 div.toast.success { background: #44bb44; }
 div.toast.warning { background: #bbbb44; }
 div.toast.error { background: var(--red); }
@@ -694,6 +692,25 @@ body.dark div.toast.warning { background: rgb(128, 128, 20); }
 body.dark div.toast.error { background-color:var(--red); }
 body.dark div.toast.critical { background: rgb(128, 20, 128); }
 body.dark div.toast.info { background: rgb(28, 84, 160); }
+
+div.toast.channel { 
+	background: var(--box-background-color); 
+	border-color: var(--theme-color); 
+	color: var(--label-color); 
+	text-shadow: none;
+	font-weight: normal;
+}
+body.dark div.toast.channel {
+	background: var(--background-color); 
+}
+
+div.toast.channel i.mdi {
+	color: var(--theme-color); 
+}
+
+/* div.toast.channel span > b {
+	color: var(--theme-color); 
+} */
 
 /* Message Banner */
 
@@ -1244,6 +1261,15 @@ body.dark .multiselect > .item {
 .multiselect > .item > i.mdi-close:hover:before {
 	content: "\F0159"; /* mdi-close-circle */
 	color: var(--theme-color);
+}
+
+.multiselect > .item.inherited {
+	color: var(--green);
+	text-shadow: 0px -1px 0px white;
+	/* opacity: 0.75; */
+}
+body.dark .multiselect > .item.inherited {
+	text-shadow: none;
 }
 
 .multiselect > .placeholder {
@@ -1939,6 +1965,9 @@ div.sel_dialog_scrollarea.nudgeheight {
 .sel_dialog_item.selected > .sel_dialog_item_check {
 	opacity: 1;
 }
+.sel_dialog_item.inherited > .sel_dialog_item_check {
+	opacity: 1;
+}
 
 .sel_dialog_caption {
 	font-size: 11px;
@@ -1955,6 +1984,16 @@ div.sel_dialog_scrollarea.nudgeheight {
 
 .sel_dialog_button_container > .button {
 	margin-left: 15px;
+}
+
+.sel_dialog_item.inherited {
+	font-weight: normal;
+	color: var(--green);
+	/* opacity: 0.75; */
+	cursor: default;
+}
+.sel_dialog_item.inherited:hover { 
+	color: var(--green); 
 }
 
 /* Popup Calendar */
