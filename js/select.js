@@ -382,8 +382,8 @@ var MultiSelect = {
 				
 				if ($this.data('hold')) {
 					html += '<div class="sel_dialog_button_container">';
-						html += '<div class="button" id="btn_sel_dialog_cancel">Cancel</div>';
-						html += '<div class="button primary" id="btn_sel_dialog_add">' + ($this.attr('confirm') || 'Accept') + '</div>';
+						html += '<div class="button" id="btn_sel_dialog_cancel"><i class="mdi mdi-close-circle-outline">&nbsp;</i>Cancel</div>';
+						html += '<div class="button primary" id="btn_sel_dialog_add"><i class="mdi mdi-check-circle">&nbsp;</i>' + ($this.attr('confirm') || 'Accept') + '</div>';
 					html += '</div>';
 				} // hold
 				
