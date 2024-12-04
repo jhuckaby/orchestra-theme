@@ -260,12 +260,27 @@ var MultiSelect = {
 			var redraw = function() {
 				// render contents of visible multiselect div
 				var num_sel = 0;
+				var inherited = $this.data('inherited') ? ($this.data('inherited') || '').split(/\,\s*/) : [];
+				
 				$ms.empty();
 				$ms.append('<div class="select_chevron mdi mdi-chevron-double-down"></div>');
 				
 				for (var idx = 0, len = self.options.length; idx < len; idx++) {
 					var opt = self.options[idx];
-					if (opt.selected) {
+					if (inherited.includes(opt.value)) {
+						// item is inherited -- show with lock icon
+						var html = '<i class="mdi mdi-lock-check">&nbsp;</i>';
+						if (opt.getAttribute && opt.getAttribute('data-icon')) {
+							html += '<i class="mdi mdi-' + opt.getAttribute('data-icon') + '">&nbsp;</i>';
+						}
+						html += opt.getAttribute('data-abbrev') || opt.label;
+						var tooltip = $this.data('itooltip') || '(Inherited Item)';
+						var $item = $('<div class="item inherited"></div>').attr('title', tooltip).data('value', opt.value).html(html);
+						$ms.append( $item );
+						num_sel++;
+					}
+					else if (opt.selected) {
+						// item is selected
 						var html = '<i class="mdi mdi-close">&nbsp;</i>';
 						if (opt.getAttribute && opt.getAttribute('data-icon')) {
 							html += '<i class="mdi mdi-' + opt.getAttribute('data-icon') + '">&nbsp;</i>';
@@ -302,7 +317,7 @@ var MultiSelect = {
 					$ms.find('.select_chevron').removeClass().addClass('select_chevron mdi mdi-dots-horizontal');
 				}
 				
-				if ($this.data('hold') && $this.data('volatile') && Popover.enabled) {
+				if ($this.data('hold') && $this.data('volatile') && Popover.enabled && (Popover.$anchor.prop('id') == $this.prop('id'))) {
 					$('#d_sel_dialog_scrollarea > div.sel_dialog_item').each( function(idx) {
 						if (self.options[idx].selected) $(this).addClass('selected');
 						else $(this).removeClass('selected');
@@ -320,6 +335,7 @@ var MultiSelect = {
 				var html = '';
 				var orig_sel_state = [];
 				var last_sel_idx = -1;
+				var inherited = $this.data('inherited') ? ($this.data('inherited') || '').split(/\,\s*/) : [];
 				if ($ms.hasClass('disabled')) return;
 				
 				html += '<div class="sel_dialog_label">' + ($this.attr('title') || 'Select Items');
@@ -337,6 +353,7 @@ var MultiSelect = {
 				
 				for (var idx = 0, len = self.options.length; idx < len; idx++) {
 					var opt = self.options[idx];
+					var is_inherited = !!inherited.includes(opt.value);
 					
 					if (opt.getAttribute('data-group')) {
 						html += '<div class="sel_dialog_group">' + opt.getAttribute('data-group') + '</div>';
@@ -348,13 +365,14 @@ var MultiSelect = {
 						html += ' ' + opt.getAttribute('data-class') + '';
 					}
 					if ($this.data('shrinkwrap')) html += ' shrinkwrap';
+					if (is_inherited) html += ' inherited';
 					
-					html += '" data-value="' + opt.value + '">';
+					html += '" data-value="' + opt.value + '" title="' + (is_inherited ? ($this.data('itooltip') || '(Inherited Item)') : '') + '">';
 					if (opt.getAttribute && opt.getAttribute('data-icon')) {
 						html += '<i class="mdi mdi-' + opt.getAttribute('data-icon') + '">&nbsp;</i>';
 					}
 					html += '<span>' + (opt.label || opt.value) + '</span>';
-					html += '<div class="sel_dialog_item_check"><i class="mdi mdi-check"></i></div>';
+					html += '<div class="sel_dialog_item_check"><i class="mdi mdi-' + (is_inherited ? 'lock-check' : 'check') + '"></i></div>';
 					html += '</div>';
 					orig_sel_state.push( opt.selected );
 					if (opt.selected) last_sel_idx = idx;
@@ -374,6 +392,8 @@ var MultiSelect = {
 				$('#d_sel_dialog_scrollarea > div.sel_dialog_item').on('mouseup', function(event) {
 					// select item, close dialog and update multi-select
 					var $item = $(this);
+					if ($item.hasClass('inherited')) return; // no clicky on inherited items
+					
 					var value = $item.data('value');
 					var new_sel_state = !$item.hasClass('selected');
 					var new_sel_idx = -1;
@@ -388,7 +408,10 @@ var MultiSelect = {
 						}
 					}
 					
-					if (!$this.data('hold') || (self.options.length == 1) || event.metaKey) Popover.detach();
+					if (!$this.data('hold') || (self.options.length == 1) || event.metaKey) {
+						// close popover
+						Popover.detach();
+					}
 					else if ($this.data('hold') && event.shiftKey && (new_sel_idx > -1) && (last_sel_idx > -1) && (new_sel_idx != last_sel_idx)) {
 						// select range
 						if (last_sel_idx > new_sel_idx) { var temp = last_sel_idx; last_sel_idx = new_sel_idx; new_sel_idx = temp; }
@@ -431,6 +454,7 @@ var MultiSelect = {
 						}
 						
 						redraw();
+						$this.trigger('change');
 					});
 					$('#btn_sel_dialog_add').on('mouseup', function() { Popover.detach(); });
 				} // hold
@@ -442,6 +466,8 @@ var MultiSelect = {
 					
 					$('#d_sel_dialog_scrollarea > div.sel_dialog_item').each( function(idx) {
 						var $item = $(this);
+						if ($item.hasClass('inherited')) return; // no clicky on inherited items
+						
 						var opt = self.options[idx];
 						opt.selected = new_sel_state;
 						if (new_sel_state) $item.addClass('selected'); else $item.removeClass('selected');
@@ -465,6 +491,12 @@ var MultiSelect = {
 					
 					$('#d_sel_dialog_scrollarea > div.sel_dialog_item').each( function() {
 						var $item = $(this);
+						if ($item.hasClass('inherited')) {
+							if (value.length) $item.hide();
+							else $item.show();
+							return;
+						}
+						
 						var text = $item.find('> span').html().toLowerCase();
 						if (!value.length || (text.indexOf(value) > -1)) {
 							$item.addClass('match').show();
