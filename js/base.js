@@ -473,8 +473,8 @@ var app = {
 		this.setPref('theme', theme);
 		
 		switch (theme) {
-			case 'light': icon = 'weather-sunny'; break;
-			case 'dark': icon = 'weather-night'; break;
+			case 'light': icon = 'white-balance-sunny'; break; // weather-sunny
+			case 'dark': icon = 'moon-waning-crescent'; break; // weather-night
 			case 'auto': icon = 'circle-half-full'; break;
 		}
 		
