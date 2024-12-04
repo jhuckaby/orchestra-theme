@@ -20,6 +20,7 @@ var Popover = {
 		this.$box = $box;
 		this.rect = rect;
 		this.enabled = true;
+		this.$anchor = $elem;
 		
 		setTimeout( function() {
 			var width = $box.width();
@@ -69,6 +70,7 @@ var Popover = {
 		if (this.enabled) {
 			this.$box.remove();
 			this.enabled = false;
+			delete this.$anchor;
 			$('#popoverlay').stop().fadeOut( 300, function() { $(this).remove(); } );
 			if (!Dialog.active) unscroll.reset();
 			
