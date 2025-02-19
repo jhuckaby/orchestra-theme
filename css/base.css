@@ -1602,6 +1602,7 @@ body.dark #dialog, body.dark .dialog {
 .dialog_content .form_row {
 	display: grid;
 	margin-bottom: 20px;
+	grid-template-columns: 3fr 8fr 1fr;
 }
 
 .dialog_buttons {
