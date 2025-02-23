@@ -998,6 +998,23 @@ window.Page = class Page {
 		return true;
 	}
 	
+	hasPrivilege(priv_id) {
+		// check if user has privilege
+		if (!app.user || !app.user.privileges) return false;
+		if (app.user.privileges.admin) return true;
+		return( !!app.user.privileges[priv_id] );
+	}
+	
+	requireAnyPrivilege(...privs) {
+		// check if user has priv, show full page error if not
+		var privs_matched = privs.filter( (priv_id) => this.hasPrivilege(priv_id) ).length;
+		if (!privs_matched) {
+			this.doFullPageError("Your account does not have the required privileges to access this page.");
+			return false;
+		}
+		return true;
+	}
+	
 	isAdmin() {
 		// return true if user is logged in and admin, false otherwise
 		// Note: This is used for UI decoration ONLY -- all privileges are checked on the server
@@ -1511,13 +1528,17 @@ window.Page = class Page {
 		var html = '';
 		html += '<div style="height:75px;"></div>';
 		
-		html += '<div class="box">';
+		html += '<div class="box" style="padding:30px">';
 			html += '<div class="box_title error">' + (resp.title || 'An Error Occurred') + '</div>';
-			html += '<div class="box_content">' + resp.description + '</div>';
+			html += '<div class="box_content" style="font-size:14px;">' + resp.description + '</div>';
 		html += '</div>';
 		
 		html += '<div style="height:75px;"></div>';
 		this.div.html(html);
+		
+		app.showSidebar(true);
+		app.setWindowTitle( "Error" );
+		app.setHeaderTitle( '<i class="mdi mdi-alert-circle-outline">&nbsp;</i>Error' );
 	}
 	
 }; // class Page
