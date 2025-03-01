@@ -2389,6 +2389,15 @@ ul.grid_row_empty > div {
 	color: var(--label-color);
 }
 
+ul.grid_row_more > div {
+	padding-top: 15px; 
+	padding-bottom: 15px; 
+	font-weight: normal;
+	font-style: italic;
+	text-align: center;
+	color: var(--label-color);
+}
+
 .data_table_compact .data_grid > ul > div {
 	border-bottom: none;
 	padding-top: 6px;
