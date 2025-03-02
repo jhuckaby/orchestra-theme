@@ -1674,6 +1674,8 @@ div.progress_bar_inner {
 	background-repeat: repeat-x;
 	background-size: 30px 30px;
 	background-image: linear-gradient(-45deg, rgba(255, 255, 255, 0.25) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.25) 50%, rgba(255, 255, 255, 0.25) 75%, transparent 75%, transparent);
+	
+	transition: width 0.5s ease-in-out;
 }
 div.progress_bar_container.indeterminate > div.progress_bar_inner {
 	opacity: 0.5;
