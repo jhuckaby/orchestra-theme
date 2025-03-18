@@ -1,6 +1,6 @@
 // Joe's Date/Time Tools
-// Copyright (c) 2004 - 2015 Joseph Huckaby
-// Released under the MIT License
+// Copyright (c) 2004 - 2025 Joseph Huckaby
+// Released under the Sustainable Use License
 
 var _months = [
 	[ 1, 'January' ], [ 2, 'February' ], [ 3, 'March' ], [ 4, 'April' ],
