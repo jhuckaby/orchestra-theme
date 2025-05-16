@@ -109,6 +109,11 @@ function pct(count, max, floor) {
 	return '' + (floor ? Math.floor(pct) : short_float(pct)) + '%';
 };
 
+function crammify(str) {
+	// strip non-alpha and lower-case
+	return ('' + str).replace(/\W+/g, '').toLowerCase();
+};
+
 function get_text_from_seconds(sec, abbrev, no_secondary) {
 	// convert raw seconds to human-readable relative time
 	var neg = '';
@@ -434,12 +439,12 @@ function zeroPad(value, len) {
 
 function dirname(path) {
 	// return path excluding file at end (same as POSIX function of same name)
-	return path.toString().replace(/\/$/, "").replace(/\/[^\/]+$/, "");
+	return path.toString().replace(/\/+$/, "").replace(/\/[^\/]+$/, "");
 }
 
 function basename(path) {
 	// return filename, strip path (same as POSIX function of same name)
-	return path.toString().replace(/\/$/, "").replace(/^(.*)\/([^\/]+)$/, "$2");
+	return path.toString().replace(/\/+$/, "").replace(/^(.*)\/([^\/]+)$/, "$2");
 }
 
 function strip_ext(path) {
