@@ -365,6 +365,27 @@ window.Page = class Page {
 		return html;
 	}
 	
+	getFormRange(args) {
+		// render custom range slider with visible number value on right side
+		if (!args.value) args.value = 0;
+		var html = '';
+		
+		args.onInput = `$P().updateFormRange(this)`;
+		
+		html += '<div class="form_row_range">';
+			html += '<div>' + this.getFormText( merge_objects(args, { type: 'range' }) ) + '</div>';
+			html += '<div>' + this.getFormText( merge_objects(args, { id: args.id + '_txt', type: 'number' }) ) + '</div>';
+		html += '</div>';
+		
+		return html;
+	}
+	
+	updateFormRange(elem) {
+		// keep range and text field in sync with each other
+		var value = elem.value;
+		$(elem).closest('.form_row_range').find('input').val(value);
+	}
+	
 	getPaginatedTable() {
 		// get html for paginated table
 		// dual-calling convention: (resp, cols, data_type, callback) or (args)
