@@ -52,10 +52,14 @@ var SingleSelect = {
 				if ($ms.hasClass('disabled')) return;
 				
 				html += '<div class="sel_dialog_label">' + ($this.attr('title') || 'Select Item') + '</div>';
-				html += '<div class="sel_dialog_search_container">';
-					html += '<input type="text" id="fe_sel_dialog_search" class="sel_dialog_search" autocomplete="off" value=""/>';
-					html += '<div class="sel_dialog_search_icon"><i class="mdi mdi-magnify"></i></div>';
-				html += '</div>';
+				
+				if (!$this.data('compact')) {
+					html += '<div class="sel_dialog_search_container">';
+						html += '<input type="text" id="fe_sel_dialog_search" class="sel_dialog_search" autocomplete="off" value=""/>';
+						html += '<div class="sel_dialog_search_icon"><i class="mdi mdi-magnify"></i></div>';
+					html += '</div>';
+				}
+				
 				html += '<div id="d_sel_dialog_scrollarea" class="sel_dialog_scrollarea';
 				if ($this.data('nudgeheight')) html += ' nudgeheight';
 				html += '">';
@@ -105,48 +109,50 @@ var SingleSelect = {
 					$this.trigger('change');
 				});
 				
-				var $input = $('#fe_sel_dialog_search');
-				$input.focus();
-				
-				// setup keyboard handlers
-				$input.on('keyup', function(event) {
-					// refresh list on every keypress
-					var value = $input.val().toLowerCase();
-					var num_matched = 0;
+				if (!$this.data('compact')) {
+					var $input = $('#fe_sel_dialog_search');
+					$input.focus();
 					
-					if (value.length) $('#d_sel_dialog_scrollarea > div.sel_dialog_group').hide();
-					else $('#d_sel_dialog_scrollarea > div.sel_dialog_group').show();
-					
-					$('#d_sel_dialog_scrollarea > div.sel_dialog_item').each( function() {
-						var $item = $(this);
-						var text = $item.find('> span').html().toLowerCase();
+					// setup keyboard handlers
+					$input.on('keyup', function(event) {
+						// refresh list on every keypress
+						var value = $input.val().toLowerCase();
+						var num_matched = 0;
 						
-						if (!value.length || (text.indexOf(value) > -1)) {
-							if (num_matched < SingleSelect.maxMenuItems) $item.addClass('match').show();
-							else $item.removeClass('match').hide();
-							num_matched++;
+						if (value.length) $('#d_sel_dialog_scrollarea > div.sel_dialog_group').hide();
+						else $('#d_sel_dialog_scrollarea > div.sel_dialog_group').show();
+						
+						$('#d_sel_dialog_scrollarea > div.sel_dialog_item').each( function() {
+							var $item = $(this);
+							var text = $item.find('> span').html().toLowerCase();
+							
+							if (!value.length || (text.indexOf(value) > -1)) {
+								if (num_matched < SingleSelect.maxMenuItems) $item.addClass('match').show();
+								else $item.removeClass('match').hide();
+								num_matched++;
+							}
+							else {
+								$item.removeClass('match').hide();
+							}
+						} ); // each
+						
+						if (num_matched > SingleSelect.maxMenuItems) {
+							$('#d_sel_dialog_more').html( '(' + commify(num_matched - SingleSelect.maxMenuItems) + ' more items not shown)' );
 						}
-						else {
-							$item.removeClass('match').hide();
+						else $('#d_sel_dialog_more').html('');
+						
+						Popover.reposition();
+					});
+					$input.on('keydown', function(event) {
+						// capture enter key
+						var value = $input.val().toLowerCase();
+						if ((event.keyCode == 13) && value.length) {
+							event.preventDefault();
+							event.stopPropagation();
+							$('#d_sel_dialog_scrollarea > div.sel_dialog_item.match').slice(0, 1).trigger('mouseup');
 						}
-					} ); // each
-					
-					if (num_matched > SingleSelect.maxMenuItems) {
-						$('#d_sel_dialog_more').html( '(' + commify(num_matched - SingleSelect.maxMenuItems) + ' more items not shown)' );
-					}
-					else $('#d_sel_dialog_more').html('');
-					
-					Popover.reposition();
-				});
-				$input.on('keydown', function(event) {
-					// capture enter key
-					var value = $input.val().toLowerCase();
-					if ((event.keyCode == 13) && value.length) {
-						event.preventDefault();
-						event.stopPropagation();
-						$('#d_sel_dialog_scrollarea > div.sel_dialog_item.match').slice(0, 1).trigger('mouseup');
-					}
-				});
+					});
+				}
 				
 				// highlight select field under us
 				$ms.addClass('selected');
