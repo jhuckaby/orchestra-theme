@@ -70,6 +70,7 @@ body {
 	--theme-color: rgb(55, 145, 245);
 	--theme-color-highlight: rgb(80, 170, 255);
 	--theme-color-half: rgba(55, 145, 245, 0.5);
+	--theme-color-naught-seven: rgba(55, 145, 245, 0.07);
 	
 	--border-color: rgb(227, 229, 233);
 	--shadow-color: rgb(233, 236, 240);
@@ -1182,7 +1183,7 @@ body.dark .dialog_content .form_row input, body.dark .dialog_content .form_row t
 }
 
 body.dark .dialog_content .form_row select {
-	background: var(--background-color);
+	background: var(--form-background-color);
 }
 
 .dialog_content .form_row select:hover {
@@ -1326,7 +1327,7 @@ body.dark .multiselect > .item.inherited {
 	background: var(--box-background-color);
 }
 body.dark #dialog .multiselect {
-	background: var(--background-color);
+	background: var(--form-background-color);
 }
 
 .multiselect i.mdi:before {
@@ -1516,6 +1517,72 @@ div.info_value:last-child {
 	/* justify-content: center; */
 	display: block;
 	position: relative;
+}
+
+.form_row_range {
+	display: grid;
+	grid-template-columns: 10fr 1fr;
+	grid-column-gap: 20px;
+}
+.form_row_duo > div {
+	/* background: rgba(255, 0, 0, 0.1); */
+	display: flex;
+	align-items: center;
+	align-self: center;
+	/* justify-content: center; */
+	display: block;
+	position: relative;
+}
+
+/* Slider */
+
+input[type=range] {
+	appearance: none;
+	margin: 8px 0;
+	width: 100%;
+}
+input[type=range]:focus {
+	outline: none;
+}
+input[type=range]::-webkit-slider-runnable-track {
+	width: 100%;
+	height: 8px;
+	cursor: pointer;
+	background: var(--border-color);
+	border-radius: 5px;
+}
+input[type=range]::-moz-range-track {
+	width: 100%;
+	height: 6px;
+	cursor: pointer;
+	background: var(--border-color);
+	border-radius: 5px;
+}
+input[type=range]::-webkit-slider-thumb {
+	border: 0px solid transparent;
+	height: 16px;
+	width: 16px;
+	border-radius: 8px;
+	background: var(--theme-color);
+	cursor: grab;
+	appearance: none;
+	margin-top: -4px;
+}
+input[type=range]::-moz-range-thumb {
+	border: 0px solid transparent;
+	height: 16px;
+	width: 16px;
+	border-radius: 8px;
+	background: var(--theme-color);
+	cursor: grab;
+	appearance: none;
+	margin-top: -4px;
+}
+input[type=range]::-webkit-slider-thumb:active {
+	cursor: grabbing;
+}
+input[type=range]::-moz-range-thumb:active {
+	cursor: grabbing;
 }
 
 /* Dialogs */
