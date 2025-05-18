@@ -1076,7 +1076,7 @@ body.dark .button.primary {
 .form_row > div.fr_caption {
 	grid-area: d;
 	font-size: 11px;
-	margin-top: 4px;
+	margin-top: 6px;
 	color: var(--label-color);
 }
 
@@ -1095,7 +1095,9 @@ body.dark .button.primary {
 	-webkit-appearance: none;
 	appearance: none;
 	line-height: 20px;
-	padding-left: 4px;
+	padding-left: 6px;
+	padding-top: 5px;
+	padding-bottom: 4px;
 	border: 1px solid var(--border-color);
 	font-size: 13px;
 	color: var(--body-text-color);
@@ -1143,7 +1145,7 @@ input:disabled, textarea:disabled {
 	-webkit-appearance: none;
 	appearance: none;
 	width: 100%;
-	line-height: 20px;
+	line-height: 29px;
 	padding-left: 4px;
 	background: var(--form-background-color);
 	border: 1px solid var(--border-color);
@@ -1164,6 +1166,7 @@ input:disabled, textarea:disabled {
 	top: 0px;
 	text-align: center;
 	font-size: 16px;
+	pointer-events: none;
 }
 
 .form_row select[multiple] {
@@ -1235,13 +1238,17 @@ body.dark .multiselect.multi {
 	display: block;
 	float: left;
 	max-width: 200px;
-	height: 18px;
-	line-height: 16px;
+	/* height: 18px; */
+	line-height: 22px;
+	
+	margin-top: 1px;
 	margin-right: 4px;
 	margin-bottom: 3px;
-	padding-top: 1px;
+	
+	/* padding-top: 1px; */
 	padding-left: 4px;
 	padding-right: 6px;
+	
 	border-radius: 6px;
 	
 	/* background: var(--theme-color);
@@ -1281,7 +1288,7 @@ body.dark .multiselect > .item.inherited {
 .multiselect > .placeholder {
 	padding-top: 1px;
 	padding-bottom: 4px;
-	line-height: 16px;
+	line-height: 21px;
 	font-style: italic;
 	color: var(--label-color);
 	
@@ -1291,8 +1298,17 @@ body.dark .multiselect > .item.inherited {
 }
 
 .multiselect.single {
-	padding-top: 2px;
+	padding-top: 6px;
+	padding-bottom: 3px;
 	background: var(--form-background-color);
+}
+.box_title_widget .multiselect.single {
+	padding-top: 2px;
+	padding-bottom: 0px;
+}
+.form_grid .multiselect.single {
+	padding-top: 2px;
+	padding-bottom: 0px;
 }
 
 .multiselect > .single {
@@ -1538,7 +1554,7 @@ div.info_value:last-child {
 
 input[type=range] {
 	appearance: none;
-	margin: 8px 0;
+	margin: 11px 0;
 	width: 100%;
 }
 input[type=range]:focus {
