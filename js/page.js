@@ -127,7 +127,7 @@ window.Page = class Page {
 	getFormMenu(args) {
 		// render menu for form
 		var html = '';
-		html += '<div class="select_chevron mdi mdi-chevron-down" style="top:2px;"></div>';
+		html += '<div class="select_chevron mdi mdi-chevron-down" style="top:7px;"></div>';
 		
 		var opts = args.options;
 		if (isa_hash(args.options)) {
