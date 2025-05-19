@@ -1656,6 +1656,7 @@ body.dark #dialog, body.dark .dialog {
 }
 
 .dialog_title {
+	position: relative;
 	font-size: 14px;
 	font-weight: bold;
 	text-transform: uppercase;
@@ -1665,6 +1666,26 @@ body.dark #dialog, body.dark .dialog {
 #d_progress_title {
 	/* text-transform: none; */
 	font-weight: normal;
+}
+
+.dialog_title_widget {
+	float: right;
+	height: 18px;
+	margin-left: 15px;
+	display: flex;
+	align-items: center;
+	
+	font-size: 13px;
+	font-weight: normal;
+	text-transform: none;
+	color: var(--body-text-color);
+	
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.dialog_title_widget > i.mdi:before {
+	transform: scale(1.20);
 }
 
 .dialog_content {
