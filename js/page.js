@@ -314,7 +314,7 @@ window.Page = class Page {
 		html += '<input ' + compose_attribs(args) + '/>';
 		
 		html += '<div class="form_row_duo">';
-			html += '<div>' + this.getFormText({ id: args.id + '_val', type: 'number', value: adj_value }) + '</div>';
+			html += '<div>' + this.getFormText({ id: args.id + '_val', type: 'number', min: 0, value: adj_value }) + '</div>';
 			html += '<div>' + this.getFormMenu({ id: args.id + '_mul', options: units, value: unit }) + '</div>';
 		html += '</div>';
 		
