@@ -49,15 +49,6 @@ function format_date(thingy, template) {
 	});
 }
 
-function format_moment(epoch, template) {
-	// format date and/or time using moment in current timezone
-	// e.g. 'YYYY/MM/DD' or 'dddd, MMMM D, YYYY' or 'h:mm a' 
-	if (!epoch) epoch = time_now();
-	else if (epoch.epoch) epoch = epoch.epoch;
-	else if (epoch.getTime) epoch = epoch.getTime() / 1000;
-	return moment.tz(epoch * 1000, app.tz).format(template);
-}
-
 function get_date_args(thingy) {
 	// return hash containing year, mon, mday, hour, min, sec
 	// given epoch seconds
