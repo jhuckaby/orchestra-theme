@@ -2433,6 +2433,7 @@ div.dropzone.drag > div.dz_bar {
 
 .data_grid {
 	display: grid;
+	align-items: center;
 }
 
 .data_grid > ul {
