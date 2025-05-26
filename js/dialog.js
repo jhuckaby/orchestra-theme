@@ -214,7 +214,7 @@ var Dialog = {
 		buttons_html += '<div id="btn_dialog_cancel" class="button" onMouseUp="Dialog.confirm_click(false)"><i class="mdi mdi-close-circle-outline">&nbsp;</i>Cancel</div>';
 		buttons_html += '<div id="btn_dialog_confirm" class="button delete" onMouseUp="Dialog.confirm_click(true)">'+ok_btn_label+'</div>';
 		
-		this.showSimpleDialog( '<span style="color:var(--red)">' + title + '</span>', inner_html, buttons_html );
+		this.showSimpleDialog( '<span class="danger">' + title + '</span>', inner_html, buttons_html );
 		
 		// special mode for key capture
 		Dialog.active = 'confirmation';
