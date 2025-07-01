@@ -49,7 +49,7 @@ var Dialog = {
 			opacity: 0,
 			left: '' + x + 'px',
 			top: '' + y + 'px'
-		}).html( html );;
+		}).html( html );
 		
 		$('body').append($dialog);
 		$dialog.fadeTo( 250, 1.0 );
@@ -158,10 +158,11 @@ var Dialog = {
 		html += '<div class="dialog_title">' + title + '</div>';
 		html += '<div class="dialog_content">' + inner_html + '</div>';
 		html += '<div class="dialog_buttons">' + buttons_html + '</div>';
-		Dialog.show( html );
+		
+		this.show( html );
 		
 		// add hover tooltips to mobile_collapse buttons
-		$('.dialog_buttons .button.mobile_collapse').each( function() {
+		$('#dialog .dialog_buttons .button.mobile_collapse').each( function() {
 			var $this = $(this);
 			$this.attr('title', $this.find('span').text() );
 		} );
@@ -178,12 +179,12 @@ var Dialog = {
 		else inner_html += '<div class="confirm_container">'+html+'</div>';
 		
 		if (isa_array(ok_btn_label)) {
-			ok_btn_label = '<i class="mdi mdi-' + ok_btn_label[0] + '">&nbsp;</i>' + ok_btn_label[1];
+			ok_btn_label = '<i class="mdi mdi-' + ok_btn_label[0] + '">&nbsp;</i><span>' + ok_btn_label[1] + '</span>';
 		}
 		
 		var buttons_html = "";
 		buttons_html += '<div id="btn_dialog_cancel" class="button" onClick="Dialog.confirm_click(false)"><i class="mdi mdi-close-circle-outline">&nbsp;</i>Cancel</div>';
-		buttons_html += '<div id="btn_dialog_confirm" class="button primary" onMouseUp="Dialog.confirm_click(true)">'+ok_btn_label+'</div>';
+		buttons_html += '<div id="btn_dialog_confirm" class="button primary" onClick="Dialog.confirm_click(true)">' + ok_btn_label + '</div>';
 		
 		this.showSimpleDialog( title, inner_html, buttons_html );
 		
@@ -207,7 +208,7 @@ var Dialog = {
 		else inner_html += '<div class="confirm_container">'+html+'</div>';
 		
 		if (isa_array(ok_btn_label)) {
-			ok_btn_label = '<i class="mdi mdi-' + ok_btn_label[0] + '">&nbsp;</i>' + ok_btn_label[1];
+			ok_btn_label = '<i class="mdi mdi-' + ok_btn_label[0] + '">&nbsp;</i><span>' + ok_btn_label[1] + '</span>';
 		}
 		
 		var buttons_html = "";
@@ -258,3 +259,127 @@ var Dialog = {
 	}
 	
 };
+
+// Code Editor
+
+var CodeEditor = {
+	
+	active: false,
+	onHide: null,
+	
+	show: function(html) {
+		// show dialog, auto-size and center
+		var temp = $('<div/>').addClass('dialog').css({
+			position: 'absolute',
+			visibility: 'hidden'
+		}).html(html).appendTo('body');
+		
+		// var width = temp.width();
+		// var height = temp.height();
+		var width = temp[0].offsetWidth;
+		var height = temp[0].offsetHeight;
+		temp.remove();
+		
+		var size = get_inner_window_size();
+		var x = Math.floor( (size.width / 2) - ((width + 0) / 2) );
+		var y = Math.floor( ((size.height / 2) - (height / 2)) * 0.75 );
+		
+		if ($('#ceditor_overlay').length) {
+			$('#ceditor_overlay').stop().remove();
+		}
+		
+		var $overlay = $('<div id="ceditor_overlay"></div>').css('opacity', 0);
+		$('body').append($overlay);
+		
+		$overlay.fadeTo( 500, 0.75 ).on('mouseup', function() {
+			CodeEditor.hide();
+		});
+		
+		if ($('#ceditor').length) {
+			$('#ceditor').stop().remove();
+		}
+		
+		var $dialog = $('<div class="dialog" id="ceditor"></div>').css({
+			opacity: 0,
+			left: '' + x + 'px',
+			top: '' + y + 'px'
+		}).html( html );
+		
+		$('body').append($dialog);
+		$dialog.fadeTo( 250, 1.0 );
+		
+		this.active = true;
+		
+		// only do the unscroll thing if another dialog isn't active under us
+		if (!Dialog.active) unscroll();
+	},
+	
+	autoResize: function() {
+		// automatically resize dialog to match changed content size
+		if (!this.active) return;
+		
+		var $dialog = $('#ceditor');
+		// var width = $dialog.width();
+		// var height = $dialog.height();
+		var width = $dialog[0].offsetWidth;
+		var height = $dialog[0].offsetHeight;
+		
+		var size = get_inner_window_size();
+		var x = Math.floor( (size.width / 2) - ((width + 0) / 2) );
+		var y = Math.floor( ((size.height / 2) - (height / 2)) * 0.75 );
+		
+		$dialog.css({
+			left: '' + x + 'px',
+			top: '' + y + 'px'
+		});
+	},
+	
+	hide: function() {
+		// hide dialog
+		if (this.active) {
+			$('#ceditor').stop().fadeOut( 250, function() { $(this).remove(); } );
+			$('#ceditor_overlay').stop().fadeOut( 300, function() { $(this).remove(); } );
+			this.active = false;
+			
+			// only release scroll lock if another dialog isn't active under us
+			if (!Dialog.active) unscroll.reset();
+			
+			if (this.onHide) {
+				// one time hook for hide
+				var callback = this.onHide;
+				this.onHide = null;
+				callback();
+			}
+		}
+	},
+	
+	showSimpleDialog: function(title, inner_html, buttons_html) {
+		// show simple dialog with title, content and buttons
+		var html = '';
+		html += '<div class="dialog_title">' + title + '</div>';
+		html += '<div class="dialog_content">' + inner_html + '</div>';
+		html += '<div class="dialog_buttons">' + buttons_html + '</div>';
+		
+		this.show( html );
+		
+		// add hover tooltips to mobile_collapse buttons
+		$('#ceditor .dialog_buttons .button.mobile_collapse').each( function() {
+			var $this = $(this);
+			$this.attr('title', $this.find('span').text() );
+		} );
+	},
+	
+	handleKeyDown: function(event) {
+		// intercept keydown for custom actions
+		if (!this.active) return;
+		
+		if (this.onKeyDown) {
+			this.onKeyDown(event);
+		}
+		else if (event.keyCode == 27) {
+			event.preventDefault();
+			this.hide();
+		}
+	},
+	
+}; // CodeEditor
