@@ -164,11 +164,12 @@ var SingleSelect = {
 	
 	popupQuickMenu: function(opts) {
 		// show popup menu on custom element
-		// opts: { elem, title, items, value, callback }
+		// opts: { elem, title, items, value, callback, nocheck?, onCancel? }
 		// item: { id, title, icon }
 		var $elem = $(opts.elem);
 		var items = opts.items;
 		var callback = opts.callback;
+		var check = opts.nocheck ? 'nocheck' : 'check';
 		var html = '';
 		
 		html += '<div class="sel_dialog_label">' + opts.title + '</div>';
@@ -182,10 +183,11 @@ var SingleSelect = {
 		for (var idy = 0, ley = items.length; idy < ley; idy++) {
 			var item = items[idy];
 			var sel = (item.id == opts.value);
-			html += '<div class="sel_dialog_item check ' + (sel ? 'selected' : '') + ' shrinkwrap" data-value="' + item.id + '">';
+			if (item.group) html += '<div class="sel_dialog_group">' + item.group + '</div>';
+			html += '<div class="sel_dialog_item ' + check + ' ' + (sel ? 'selected' : '') + ' shrinkwrap" data-value="' + item.id + '">';
 			if (item.icon) html += '<i class="mdi mdi-' + item.icon + '">&nbsp;</i>';
 			html += '<span>' + item.title + '</span>';
-			html += '<div class="sel_dialog_item_check"><i class="mdi mdi-check"></i></div>';
+			if (!opts.nocheck) html += '<div class="sel_dialog_item_check"><i class="mdi mdi-check"></i></div>';
 			html += '</div>';
 		}
 		html += '</div>';
@@ -197,12 +199,14 @@ var SingleSelect = {
 			var $item = $(this);
 			var value = $item.data('value');
 			
+			delete opts.onCancel;
 			Popover.detach();
 			callback(value);
 		}); // mouseup
 		
 		Popover.onDetach = function() {
 			$elem.removeClass('popped');
+			if (opts.onCancel) opts.onCancel();
 		};
 		
 		$elem.addClass('popped');
