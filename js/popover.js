@@ -3,11 +3,12 @@ var Popover = {
 	
 	enabled: false,
 	onDetach: null,
+	isSafari: !!(navigator.userAgent.match(/Safari/) && !navigator.userAgent.match(/(Chrome|Opera|Edge)/)),
 	
 	attach: function(elem, html, shrinkwrap) {
 		if (this.enabled) this.detach();
 		var $elem = $(elem);
-		var rect = $elem[0].getBoundingClientRect();
+		var rect = this.isSafari ? this.getBoundingClientRect($elem[0]) : $elem[0].getBoundingClientRect();
 		var win = get_inner_window_size();
 		
 		var $box = $('<div class="arrow_box"></div>').html(html).css({
@@ -103,6 +104,55 @@ var Popover = {
 			event.preventDefault();
 			this.detach();
 		}
+	},
+	
+	getBoundingClientRect: function(el) {
+		// custom version of getBoundingClientRect that works in safari
+		// supports zoom, fixed and scrolling elements
+		if (!(el instanceof Element)) throw new TypeError("Expected an Element");
+		
+		let x = 0, y = 0;
+		let current = el;
+		let encounteredFixed = false;
+		let scale = 1;
+		
+		while (current) {
+			const style = window.getComputedStyle(current);
+			const zoom = parseFloat(style.zoom) || 1;
+			const position = style.position;
+			
+			if (position === 'fixed') {
+				const rect = current.getBoundingClientRect();
+				x += rect.left * zoom;
+				y += rect.top * zoom;
+				scale *= zoom;
+				encounteredFixed = true;
+				break;
+			}
+			
+			x = (x + current.offsetLeft - current.scrollLeft) * zoom;
+			y = (y + current.offsetTop - current.scrollTop) * zoom;
+			scale *= zoom;
+			
+			current = current.offsetParent;
+		}
+		
+		if (!encounteredFixed) {
+			x -= window.pageXOffset;
+			y -= window.pageYOffset;
+		}
+		
+		const width = el.offsetWidth * scale;
+		const height = el.offsetHeight * scale;
+		
+		return {
+			x, y,
+			width, height,
+			top: y,
+			left: x,
+			right: x + width,
+			bottom: y + height
+		};
 	}
 	
 };
