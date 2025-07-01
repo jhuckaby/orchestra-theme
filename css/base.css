@@ -8,7 +8,7 @@
 :root {
 	--blue: rgb(0, 123, 255);
 	--indigo: rgb(102, 16, 242);
-	--purple: rgb(111, 66, 193);
+	--purple: rgb(140, 60, 220);
 	--pink: rgb(232, 62, 140);
 	--red: rgb(220, 53, 69);
 	--orange: rgb(253, 126, 20);
@@ -26,25 +26,25 @@
 	--light: rgb(248, 249, 250);
 	--dark: rgb(52, 58, 64);
 	
-	--blue-highlight: rgba(0, 123, 255, 0.8);
-	--indigo-highlight: rgba(102, 16, 242, 0.8);
-	--purple-highlight: rgba(111, 66, 193, 0.8);
-	--pink-highlight: rgba(232, 62, 140, 0.8);
-	--red-highlight: rgba(220, 53, 69, 0.8);
-	--orange-highlight: rgba(253, 126, 20, 0.8);
-	--yellow-highlight: rgba(255, 193, 7, 0.8);
-	--green-highlight: rgba(40, 167, 69, 0.8);
-	--teal-highlight: rgba(32, 201, 151, 0.8);
-	--cyan-highlight: rgba(23, 162, 184, 0.8);
-	--gray-highlight: rgba(108, 117, 125, 0.8);
-	--primary-highlight: rgba(0, 123, 255, 0.8);
-	--secondary-highlight: rgba(108, 117, 125, 0.8);
-	--success-highlight: rgba(40, 167, 69, 0.8);
-	--info-highlight: rgba(23, 162, 184, 0.8);
-	--warning-highlight: rgba(255, 193, 7, 0.8);
-	--danger-highlight: rgba(220, 53, 69, 0.8);
-	--light-highlight: rgba(248, 249, 250, 0.8);
-	--dark-highlight: rgba(52, 58, 64, 0.8);
+	--blue-highlight: color-mix(in srgb, var(--blue) 80%, white);
+	--indigo-highlight: color-mix(in srgb, var(--indigo) 80%, white);
+	--purple-highlight: color-mix(in srgb, var(--purple) 80%, white);
+	--pink-highlight: color-mix(in srgb, var(--pink) 80%, white);
+	--red-highlight: color-mix(in srgb, var(--red) 80%, white);
+	--orange-highlight: color-mix(in srgb, var(--orange) 80%, white);
+	--yellow-highlight: color-mix(in srgb, var(--yellow) 80%, white);
+	--green-highlight: color-mix(in srgb, var(--green) 80%, white);
+	--teal-highlight: color-mix(in srgb, var(--teal) 80%, white);
+	--cyan-highlight: color-mix(in srgb, var(--cyan) 80%, white);
+	--gray-highlight: color-mix(in srgb, var(--gray) 80%, white);
+	--primary-highlight: color-mix(in srgb, var(--primary) 80%, white);
+	--secondary-highlight: color-mix(in srgb, var(--secondary) 80%, white);
+	--success-highlight: color-mix(in srgb, var(--success) 80%, white);
+	--info-highlight: color-mix(in srgb, var(--info) 80%, white);
+	--warning-highlight: color-mix(in srgb, var(--warning) 80%, white);
+	--danger-highlight: color-mix(in srgb, var(--danger) 80%, white);
+	--light-highlight: color-mix(in srgb, var(--light) 80%, white);
+	--dark-highlight: color-mix(in srgb, var(--dark) 80%, white);
 	
 	--green-brighter: rgb(60, 187, 89);
 	--red-brighter: rgb(240, 73, 89);
@@ -87,7 +87,9 @@ body {
 	--body-text-color: rgb(60, 70, 85);
 	--link-color: rgb(80, 90, 105);
 	--label-color: rgb(115, 115, 130);
+	--alt-label-color: rgb(130, 140, 150);
 	--icon-color: rgb(185, 190, 200);
+	--icon-color-half: rgba(185, 190, 200, 0.5);
 	
 	--trans100: rgba(255, 255, 255, 0.0);
 	--trans75: rgba(255, 255, 255, 0.75);
@@ -104,6 +106,9 @@ body {
 
 body.dark {
 	/* Dark theme */
+	--yellow: rgb(204, 154, 6);
+	--yellow-highlight: color-mix(in srgb, rgb(204, 154, 6) 80%, white);
+	
 	--border-color: rgb(50, 54, 58);
 	--shadow-color: rgba(0, 0, 0, 0.0);
 	--background-color: rgb(24, 28, 32);
@@ -119,6 +124,7 @@ body.dark {
 	--body-text-color: rgb(170, 180, 200);
 	--link-color: rgb(145, 155, 170);
 	--label-color: rgb(145, 155, 170);
+	--alt-label-color: rgb(120, 125, 130);
 	--icon-color: rgb(115, 115, 130);
 	--icon-color-half: rgba(115, 115, 130, 0.5);
 }
@@ -301,7 +307,7 @@ div.section_title:first-child {
 }
 
 div.section_title > i {
-	color: var(--icon-color);
+	color: var(--theme-color);
 }
 div.section_title > i.icon:before {
 	transform-origin: center center;
@@ -549,7 +555,7 @@ body.dark div.header_widget:hover {
 
 div.header_widget.danger:hover, div.header_widget.danger.popped {
 	color: var(--red);
-	border: 1px solid var(--red-highlight) !important;
+	border: 1px solid var(--red) !important;
 }
 
 div.header_widget.red {
@@ -965,7 +971,7 @@ body.dark .button {
 	top: -1px;
 	color: var(--theme-color);
 	/* background: var(--box-background-color); */
-	border: 1px solid var(--theme-color-half);
+	border: 1px solid var(--theme-color);
 	box-shadow: 0px 2px 1px var(--shadow-color);
 	opacity: 1.0;
 	/* text-decoration: underline; */
@@ -997,7 +1003,7 @@ body.dark .button.primary {
 
 .button.danger:hover {
 	color: var(--red);
-	border: 1px solid var(--red-highlight);
+	border: 1px solid var(--red);
 }
 
 .button.small {
@@ -1746,6 +1752,26 @@ body.dark #dialog, body.dark .dialog {
 	white-space: nowrap;
 }
 
+/* Code Editor */
+/* z-index: 600 */
+
+#ceditor_overlay {
+	position: fixed;
+	z-index: 599;
+	top: 0px;
+	left: 0px;
+	background-color: var(--box-background-color);
+	width: 100vw;
+	height: 100vh;
+}
+body.dark #ceditor_overlay {
+	background-color: var(--background-color);
+}
+
+#ceditor {
+	z-index: 600;
+}
+
 /* Progress Bar Stuff */
 
 @keyframes progress { to { background-position: 30px 0; } }
@@ -2070,6 +2096,9 @@ div.sel_dialog_scrollarea.nudgeheight {
 
 .sel_dialog_item.check {
 	padding-left: 24px;
+}
+.sel_dialog_item.nocheck {
+	padding-left: 2px;
 }
 
 .sel_dialog_item_check {
@@ -2485,7 +2514,7 @@ body.dark .data_grid > ul.grid_row_header > div {
 	transform: scale(1.30);
 }
 .data_grid > ul > div i.mdi {
-	padding-left: 1px;
+	padding-left: 2px;
 	padding-right: 1px;
 }
 
@@ -2515,6 +2544,10 @@ ul.grid_row_more > div {
 	padding-top: 6px;
 	padding-bottom: 6px;
 	padding-left: 10px;
+}
+.data_table_compact .data_grid > ul.grid_row_empty > div {
+	padding-top: 10px;
+	padding-bottom: 10px;
 }
 
 /* Color Labels */
