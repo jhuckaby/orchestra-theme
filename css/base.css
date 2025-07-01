@@ -1031,6 +1031,12 @@ body.dark .button.primary {
 	padding-right: 0px;
 }
 
+.button.disabled {
+	opacity: 0.5;
+	cursor: default;
+	pointer-events: none;
+}
+
 /* Form Grid */
 
 .form_row {
