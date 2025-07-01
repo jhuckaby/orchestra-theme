@@ -588,6 +588,16 @@ function get_unique_id(len) {
 	return id;
 };
 
+function get_short_id(prefix = '', len = 10) {
+	// Get unique ID using crypto, lower-case only
+	var id = '';
+	var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+	while (id.length < len) {
+		id += chars[ crypto.getRandomValues(new Uint32Array(1))[0] % chars.length ];
+	}
+	return prefix + id;
+};
+
 function escape_regexp(text) {
 	// Escape text for use in a regular expression.
 	return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
