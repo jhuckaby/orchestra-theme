@@ -467,7 +467,7 @@ var app = {
 	},
 	
 	setTheme: function(theme) {
-		// toggle light/dark theme
+		// set light/dark theme
 		var icon = '';
 		
 		this.setPref('theme', theme);
@@ -655,6 +655,7 @@ window.addEventListener( "click", function(e) {
 
 window.addEventListener( "keydown", function(event) {
 	if (Popover.enabled) Popover.handleKeyDown(event);
+	else if (CodeEditor.handleKeyDown) CodeEditor.handleKeyDown(event);
 	else if (Dialog.active) Dialog.confirm_key(event);
 	else app.handleKeyDown(event);
 }, false );
