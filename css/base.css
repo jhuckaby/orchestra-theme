@@ -649,10 +649,9 @@ div.header_search_widget > input[type="text"]:focus {
 	position: fixed;
 	box-sizing: border-box;
 	z-index: 999;
-	left: 100%;
-	margin-left: -370px;
+	left: 20px;
 	width: 350px;
-	top: 30px;
+	bottom: 20px;
 }
 
 div.toast {

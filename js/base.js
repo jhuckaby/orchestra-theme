@@ -276,7 +276,7 @@ var app = {
 		
 		var $toast = $(html);
 		var timer = null;
-		$('#toaster').prepend( $toast );
+		$('#toaster').append( $toast );
 		
 		$toast.fadeIn(250);
 		$toast.on('click', function() {
