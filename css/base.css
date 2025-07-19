@@ -1114,6 +1114,7 @@ body.dark .button.primary {
 	font-size: 13px;
 	color: var(--body-text-color);
 	transition: 0.2s ease all;
+	cursor: text;
 }
 .form_row input[type="text"]:focus, .form_row input[type="password"]:focus, .form_row input[type="email"]:focus, .form_row input[type="url"]:focus, .form_row input[type="number"]:focus, .form_row input[type="date"]:focus, .form_row input[type="datetime-local"]:focus {
 	/* color: var(--theme-color); */
@@ -1787,11 +1788,14 @@ div.progress_bar_container {
 	height: 18px;
 	border-radius: 10px;
 	background-color: var(--border-color);
-	/* box-shadow: inset 2px 2px 4px #999; */
+	box-shadow: inset -1px -1px 0px rgba(255, 255, 255, 0.1), inset 1px 1px 0px rgba(0, 0, 0, 0.1);
 	overflow: hidden;
 }
 div.progress_bar_container.indeterminate {
 	background-color: var(--background-color);
+	box-shadow: none;
+}
+div.progress_bar_container.pending {
 	box-shadow: none;
 }
 
@@ -1819,6 +1823,10 @@ div.progress_bar_inner {
 }
 div.progress_bar_container.indeterminate > div.progress_bar_inner {
 	opacity: 0.5;
+	transition: none !important;
+}
+div.progress_bar_container.pending > div.progress_bar_inner {
+	transition: none !important;
 }
 
 body.dark div.progress_bar_inner {
