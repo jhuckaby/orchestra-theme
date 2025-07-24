@@ -258,8 +258,8 @@ var app = {
 			break;
 		}
 		
-		// prevent script injection
-		msg = encode_entities(msg);
+		// strip html to prevent script injection
+		msg = strip_html(msg);
 		
 		this.toast({ type, icon, msg, lifetime, loc });
 	},

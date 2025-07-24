@@ -532,6 +532,16 @@ function encode_attrib_entities(text) {
 	return text;
 }
 
+function strip_html(text) {
+	if (text == null) return '';
+	
+	if (text && text.replace) {
+		text = text.replace(/<.+?>/g, '');
+	}
+	
+	return text;
+}
+
 function truncate_ellipsis(str, len) {
 	// simple truncate string with ellipsis if too long
 	str = str_value(str);
